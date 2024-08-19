@@ -1,0 +1,1 @@
+Public contributions are currently closed. I will try to open them as soon as possible. If you are interested in the project, you can contact me via [email](mailto:thienannguyen.cv@gmail.com?subject=[GitHub][SMap project]%20I%20want%20to%20contribute).

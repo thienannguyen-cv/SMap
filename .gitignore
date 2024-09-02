@@ -6,3 +6,5 @@ tutorial/model_0_0.pth
 tutorial/train_history_0_0.csv
 tutorial/orientation.png
 tutorial/position.png
+tutorial/.ipynb_checkpoints/tutorial-checkpoint.ipynb
+/tutorial

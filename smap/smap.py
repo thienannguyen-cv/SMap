@@ -1,6 +1,8 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
+import torch.nn.functional as F
+
 
 def flip(x, dim):
     dim = x.dim() + dim if dim < 0 else dim
@@ -39,20 +41,23 @@ class SwishJit(nn.Module):
         return SwishJitAutoFn.apply(x)
     
 class SMap3x3(nn.Module):
-    def __init__(self, camera_matrix):
+    def __init__(self, window_h, window_w, camera_matrix, device):
         super(SMap3x3,self).__init__()
         
+        self.window_h = window_h
+        self.window_w = window_w
         self.camera_matrix = nn.Parameter(torch.from_numpy(camera_matrix), requires_grad=False)
         self.camera_matrix_inv = nn.Parameter(torch.from_numpy(np.linalg.inv(camera_matrix)), requires_grad=False)
+        self.device = device
 
         self.sm = nn.Softmax(dim=2)
     
     def to_3d(self, z, height, width, panels, original_size):
         y_im, x_im = panels
         y_im, x_im = torch.from_numpy(y_im).reshape(height, width), torch.from_numpy(x_im).reshape(height, width)
-        y_im = y_im * IMG_SHAPE[0] / original_size[0]
-        x_im = x_im * IMG_SHAPE[1] / original_size[1]
-        y_im, x_im = y_im.to(device), x_im.to(device)
+        y_im = y_im * self.window_h / original_size[0]
+        x_im = x_im * self.window_w / original_size[1]
+        y_im, x_im = y_im.to(self.device), x_im.to(self.device)
         
         imp_co = torch.cat([torch.einsum('hw,bczhw->bczhw', x_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.einsum('hw,bczhw->bczhw', y_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.ones_like(z.unsqueeze(2))], 2)
         imp_co = F.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width)
@@ -175,7 +180,7 @@ class SMap3x3(nn.Module):
             shapes = target_2Dr.size()
             BATCH_SIZE, C_zoom, h_zoom, w_zoom = shapes[0], shapes[1], shapes[-2], shapes[-1]
             
-            target_2Dr, _ = torch.max(target_2Dr.reshape(batch_size,-1,1,h_zoom, w_zoom),dim=1,keepdim=False)
+            target_2Dr, _ = torch.max(target_2Dr.reshape(BATCH_SIZE,-1,1,h_zoom, w_zoom),dim=1,keepdim=False)
             
             key_query_grdf = -(key_query-key_query.detach())
             new_r_mask_grdf = (r_mask-r_mask.detach())
@@ -211,10 +216,10 @@ class SMap3x3(nn.Module):
         return new_x_z_mask_value, weights
 
 class SMap(nn.Module):
-    def __init__(self, n, camera_matrix):
+    def __init__(self, n, window_h, window_w, camera_matrix, device):
         super(SMap,self).__init__()
         self.n = n
-        self.smap3x3 = SMap3x3(camera_matrix)
+        self.smap3x3 = SMap3x3(window_h, window_w, camera_matrix, device)
     
     def forward(self, x, target_2Dr=None, zoom=0):
         shapes = x.size()
@@ -231,9 +236,9 @@ class SMap(nn.Module):
             
         target = None
         if target_2Dr is not None:
-            target_2Dr = target_2Dr.reshape(batch_size,1,height_zoom,C_zoom_2, width_zoom,C_zoom_2).permute(0,3,5,1,2,4).reshape(batch_size,C_zoom,1,height_zoom, width_zoom)
+            target_2Dr = target_2Dr.reshape(BATCH_SIZE,1,height_zoom,C_zoom_2, width_zoom,C_zoom_2).permute(0,3,5,1,2,4).reshape(BATCH_SIZE,C_zoom,1,height_zoom, width_zoom)
             if self.n==zoom:
-                target = target_2Dr.reshape(batch_size,-1,height_zoom, width_zoom)
+                target = target_2Dr.reshape(BATCH_SIZE,-1,height_zoom, width_zoom)
         x, weights = self.smap3x3(x, target, (height_zoom, width_zoom))
         _, _, h_out, w_out = weights.size()
         
@@ -244,11 +249,11 @@ class SMap(nn.Module):
             width_zoom = width_zoom*2
             h_out = h_out*2
             w_out = w_out*2
-            x = x.reshape(batch_size,2,C_zoom_2,2,C_zoom_2,4,h_out//2, w_out//2).permute(0,2,4,5,6,1,7,3).reshape(batch_size,C_zoom,4,h_out, w_out)
+            x = x.reshape(BATCH_SIZE,2,C_zoom_2,2,C_zoom_2,4,h_out//2, w_out//2).permute(0,2,4,5,6,1,7,3).reshape(BATCH_SIZE,C_zoom,4,h_out, w_out)
             if target_2Dr is not None:
-                target_2Dr = target_2Dr.reshape(batch_size,2,C_zoom_2,2,C_zoom_2,1,height_zoom//2, width_zoom//2).permute(0,2,4,5,6,1,7,3).reshape(batch_size,C_zoom,height_zoom, width_zoom)
+                target_2Dr = target_2Dr.reshape(BATCH_SIZE,2,C_zoom_2,2,C_zoom_2,1,height_zoom//2, width_zoom//2).permute(0,2,4,5,6,1,7,3).reshape(BATCH_SIZE,C_zoom,height_zoom, width_zoom)
                 if i==(self.n-zoom-1):
-                    target = target_2Dr.reshape(batch_size,-1,height_zoom, width_zoom)
+                    target = target_2Dr.reshape(BATCH_SIZE,-1,height_zoom, width_zoom)
 
             x, weights = self.smap3x3(x, target, (height_zoom, width_zoom))
             _, _, h_out, w_out = weights.size()

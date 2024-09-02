@@ -1,2 +1,8 @@
 
 smap/__pycache__/smap.cpython-36.pyc
+/tutorial/sample_data/Sky303
+tutorial/dev_history.csv
+tutorial/model_0_0.pth
+tutorial/train_history_0_0.csv
+tutorial/orientation.png
+tutorial/position.png

@@ -25,11 +25,11 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 
 ## Table of Contents
 
-- [Main Features](#main-features)
+- [Next Version Features](#next-version-features)
 - [License](#license)
 
-## Main Features
-🚧Under Construction🚧
+## Next Version Features
+- Camera Calibration as a PnI solver. 
 
 ## License
 [BSD 3](LICENSE)

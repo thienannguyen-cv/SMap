@@ -23,6 +23,8 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 
 **Countable vision**: This concept will be revealed in the second phase of the project. 
 
+*Current Plans*: [here on Trello](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management)
+
 ## Table of Contents
 
 - [Next Version Features](#next-version-features)

@@ -4,7 +4,7 @@
 
 -----------------
 
-# SMap
+# Spatial Mapping (SMap)
 
 | | |
 | --- | --- |

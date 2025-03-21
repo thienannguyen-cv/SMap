@@ -34,7 +34,7 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 - Camera Calibration as a PnI solver. 
 
 ## License
-[BSD 3](LICENSE)
+[Apache 2.0](LICENSE)
 
 <hr>
 

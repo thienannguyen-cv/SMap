@@ -33,18 +33,14 @@ class TestBot_Out(nn.Module):
                     gradient_flow[gradient_flow<=1e-5] = .99
 
                     # Lưu kết quả vào activation_gradients
-                    self.activation_gradients[name] = gradient_flow.sum(axis=-1,keepdims=False).reshape(H_out, W_out).cpu().numpy()
+                    self.target_representation = gradient_flow.sum(axis=-1,keepdims=False).reshape(H_out, W_out).cpu().numpy()
                     
-                    import pickle
-                    flow_info = {"activation_gradients": self.activation_gradients}
-                    with open('target_info.pkl', 'wb') as f:
-                        pickle.dump(flow_info, f)
+                    np.save("target_representation.npy", self.target_representation)
             return hook
         self.module = NoneBot()
         if module is not None:
             self.module = module
-        self.activation_gradients = {}
-        self.gradient_flows = {}
+        self.target_representation = None
         self.name = name
         self.module.register_backward_hook(get_activation_grad(self.name))
         

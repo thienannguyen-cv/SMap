@@ -32,6 +32,29 @@ jobs:
           python -m pip install build
           python -m build
 
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests
+
+      - name: Create release tag if not exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Đọc phiên bản từ file __init__.py (giả sử package của bạn ở thư mục smap)
+          VERSION=$(python -c "import re; f=open('smap/__init__.py'); print(re.search(r'^__version__\s*=\s*[\"']([^\"']+)[\"']', f.read(), re.M).group(1))")
+          echo "Found version: $VERSION"
+          
+          # Kiểm tra xem tag v{VERSION} đã tồn tại hay chưa
+          if git tag --list | grep -q "v$VERSION"; then
+            echo "Tag v$VERSION already exists."
+          else
+            echo "Creating new tag v$VERSION"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:

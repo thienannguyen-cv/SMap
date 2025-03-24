@@ -98,7 +98,7 @@ class DebugAdapter:
 
 1. **Install Dependencies:**
    ```bash
-   pip install torch torchvision plotly ipywidgets numpy matplotlib
+   pip install plotly==5.12.0 ipywidgets==7.6.5 matplotlib==3.3.4 torch==1.3.1 torchvision==0.4.2 numpy==1.19.5 --force-reinstall
    ```
 2. **Configure DEBUG_FOLDER:**  
    Set the `DEBUG_FOLDER` variable (e.g., `"../../../tutorial/"`) to point to your data directory.

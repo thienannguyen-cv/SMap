@@ -29,6 +29,9 @@ jobs:
           pip install .
           # Nếu dùng unittest:
           # pip install pytest  (nếu muốn dùng pytest)
+
+      - name: Install package in editable mode
+        run: pip install -e .
       
       - name: Run unit tests
         run: |

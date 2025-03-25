@@ -2,48 +2,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from tools.testing.vtest.vtest_types import NoneBot
 
 def flip(x, dim):
     dim = x.dim() + dim if dim < 0 else dim
     return x[tuple(slice(None, None) if i != dim
              else torch.arange(x.size(i)-1, -1, -1).long()
              for i in range(x.dim()))]
-
-def swish_jit_fwd(x):
-    return x.mul(torch.sigmoid(x))
-
-def swish_jit_bwd(x, grad_output):
-    x_sigmoid = torch.sigmoid(x)
-    return grad_output * (x_sigmoid * (1 + x * (1 - x_sigmoid)))
-
-class SwishJitAutoFn(torch.autograd.Function):
-    """ torch.jit.script optimised Swish
-    Inspired by conversation btw Jeremy Howard & Adam Pazske
-    https://twitter.com/jeremyphoward/status/1188251041835315200
-    """
-    @staticmethod
-    def forward(ctx, x):
-        ctx.save_for_backward(x)
-        return swish_jit_fwd(x)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        x = ctx.saved_tensors[0]
-        return swish_jit_bwd(x, grad_output)
-
-class SwishJit(nn.Module):
-    def __init__(self, inplace: bool = False):
-        super(SwishJit, self).__init__()
-        self.inplace = inplace
-
-    def forward(self, x):
-        return SwishJitAutoFn.apply(x)
     
 class SMap3x3(nn.Module):
     def __init__(self, window_h, window_w, camera_matrix, device):
         super(SMap3x3,self).__init__()
-        
+        self.vtest_service = NoneBot()
         self.window_h = window_h
         self.window_w = window_w
         self.camera_matrix = nn.Parameter(torch.from_numpy(camera_matrix), requires_grad=False)
@@ -60,7 +30,7 @@ class SMap3x3(nn.Module):
         y_im, x_im = y_im.to(self.device), x_im.to(self.device)
         
         imp_co = torch.cat([torch.einsum('hw,bczhw->bczhw', x_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.einsum('hw,bczhw->bczhw', y_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.ones_like(z.unsqueeze(2))], 2)
-        imp_co = F.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width)
+        imp_co = F.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width).to(self.device)
         imp_co = torch.einsum('bchw,bczshw->bczshw', z.float(), imp_co.float()).reshape(z.size(0),z.size(1),3,3*3,-1)
         regr_co = torch.einsum('xz,yz->xy', imp_co.reshape(z.size(0),z.size(1),3,-1).permute(0,1,3,2).reshape(-1,3).float(), self.camera_matrix_inv.float())
         regr_co = regr_co.reshape(z.size(0),z.size(1),-1,3).permute(0,1,3,2).reshape(z.size(0),z.size(1),3,3*3,height*width)
@@ -211,7 +181,7 @@ class SMap3x3(nn.Module):
             
             weights_grdf = weights.detach()+new_r_mask_grdf+key_query_grdf*target_2Dr.reshape(BATCH_SIZE,1,h_zoom, w_zoom)
             
-            weights = weights.detach() + weights_grdf*allow.detach()
+            weights = weights.detach() + self.vtest_service(weights_grdf)*allow.detach()
             
         return new_x_z_mask_value, weights
 

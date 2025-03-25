@@ -8,3 +8,10 @@ tutorial/orientation.png
 tutorial/position.png
 tutorial/.ipynb_checkpoints/tutorial-checkpoint.ipynb
 tutorial/.ipynb_checkpoints/vtest_tutorial-checkpoint.ipynb
+/tools/testing/__pycache__
+/tools/__pycache__
+/tools/testing/vtest/.ipynb_checkpoints
+/tools/testing/vtest/__pycache__
+/smap/__pycache__
+/smap.egg-info
+/tests/__pycache__

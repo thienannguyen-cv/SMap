@@ -19,7 +19,7 @@ class TestBot_Out(nn.Module):
             def hook(module, grad_input, grad_output):
                 if name is not None:
                     # Lấy grad_out: shape [N, C_out, H_out, W_out]
-                    grad_out = ((grad_output[0])[:,:,:4,:4]).detach()
+                    grad_out = (grad_output[0]).detach()
                     N, C_out, H_out, W_out = grad_out.shape
                     
                     grad_out = (grad_out[0,0,:,:])
@@ -54,11 +54,11 @@ class TestBot(nn.Module):
             def hook(module, grad_input, grad_output):
                 if name is not None:
                     # Lấy grad_out: shape [N, C_out, H_out, W_out]
-                    grad_out = ((grad_output[0])[:,:,:4,:4]).detach()
+                    grad_out = (grad_output[0]).detach()
                     N, C_out, H_out, W_out = grad_out.shape
                     
                     # Lấy grad_in: shape [N, C_out, C_in, H_in, W_in]
-                    grad_in = ((grad_input[0])[:,:,:4,:4]).detach()
+                    grad_in = (grad_input[0]).detach()
                     N, C_in, H_in, W_in = grad_in.shape
                     grad_out = (grad_out[0,0,:,:])
                     grad_in = (grad_in[0,0,:,:])
@@ -79,6 +79,7 @@ class TestBot(nn.Module):
                     self.activation_gradients[connet2name] = (self.gradient_flows[(name, connet2name)]).sum(axis=0,keepdims=False).reshape(H_out, W_out)
                     
                     import pickle
+                    np.save("input_representation.npy", self.input_representation)
                     flow_info = {"activation_gradients": self.activation_gradients, 
                                  "gradient_flows": self.gradient_flows}
                     with open('flow_info.pkl', 'wb') as f:
@@ -87,6 +88,7 @@ class TestBot(nn.Module):
         self.module = NoneBot()
         if module is not None:
             self.module = module
+        self.input_representation = None
         self.activation_gradients = {}
         self.gradient_flows = {}
         self.name = name
@@ -94,4 +96,5 @@ class TestBot(nn.Module):
         self.module.register_backward_hook(get_activation_grad(self.name, self.connet2name))
         
     def forward(self, x):
+        self.input_representation = (x[0,0,:,:]).detach().cpu().numpy()
         return self.module(x)

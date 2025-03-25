@@ -16,8 +16,8 @@ with open("requirements.txt", "r", encoding="utf-8") as req_file:
     ]
 
 setup(
-    name=SMap,  # Tên package của bạn
-    version=0.1.0,  # Phiên bản khởi đầu
+    name="smap",  # Tên package của bạn
+    version="0.1.0",  # Phiên bản khởi đầu
     description="An open source pytorch library for spatial mapping based on 2D representations",  # Mô tả ngắn
     author="Thien An L. Nguyen",
     author_email="thienannguyen.cv@gmail.com",

@@ -27,10 +27,58 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 
 ## Table of Contents
 
-- [Next Version Features](#next-version-features)
+- [Installation](#installation)
+- [Next Release Features](#next-release-features)
 - [License](#license)
 
-## Next Version Features
+## Installation
+
+Follow these steps to install and set up SMap for development:
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/thienannguyen-cv/SMap.git
+   cd SMap
+   ```
+
+2. **(Optional) Create and activate a virtual environment:**
+
+   ```bash
+   # On Linux or macOS:
+   python -m venv venv
+   source venv/bin/activate
+
+   # On Windows:
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+
+   Upgrade pip and setuptools, then install all required packages:
+
+   ```bash
+   pip install --upgrade pip setuptools
+   pip install -r requirements.txt
+   ```
+
+4. **Install SMap in editable mode:**
+
+   This allows you to develop SMap and have changes reflected immediately without reinstalling the package:
+
+   ```bash
+   pip install -e .
+   ```
+
+After installation, you can import the package in your python project, for example:
+
+```python
+from smap import SMap, SMap3x3
+```
+
+
+## Next Release Features
 - Camera Calibration as a PnI solver. 
 
 ## License

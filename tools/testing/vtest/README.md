@@ -85,7 +85,7 @@ class DebugAdapter:
    Use the debug tool to modify the input heatmap and click **Save** to store the current input representation into the `flow_info.pkl` file.
 
 2. **External Neural Network Execution:**  
-   In a separate notebook or process within the `DEBUG_FOLDER`, run your neural network (with the Adapter attached) so that it processes the saved input, computes updated gradient flows, and writes the new data to `flow_info.pkl`.
+   In a separate notebook or process within the `DEBUG_FOLDER`, run your neural network (with the Adapter attached in a similar way to setting traditional breakpoints as you can see in *vinittest* files, definied below, in the `${{ github.workspace }}/tests` folder) so that it processes the saved input, computes updated gradient flows, and writes the new data to `flow_info.pkl`.
 
 3. **Render Updated Data:**  
    In the debug tool, click the **Render** button to reload the updated gradient information from the `DEBUG_FOLDER`. The visualizations (Sankey Diagram and Heatmaps) will then refresh to display the new data.
@@ -101,9 +101,9 @@ class DebugAdapter:
    pip install plotly==5.12.0 ipywidgets==7.6.5 matplotlib==3.3.4 torch==1.3.1 torchvision==0.4.2 numpy==1.19.5 --force-reinstall
    ```
 2. **Configure DEBUG_FOLDER:**  
-   Set the `DEBUG_FOLDER` variable (e.g., `"../../../tutorial/"`) to point to your data directory.
+   Set the `DEBUG_FOLDER` variable (e.g., `"../../../tests/output"`) to point to your data directory.
 3. **Prepare Data Files:**  
-   Ensure that `flow_info.pkl` and `target_representation.npy` are located in the DEBUG_FOLDER.
+   Ensure that `flow_info.pkl`, `input_representation.npy` and `target_representation.npy` are located in the DEBUG_FOLDER.
 
 ### Running the Tool
 
@@ -128,6 +128,8 @@ class DebugAdapter:
 
 6. **Interact and Inspect:**  
    Use the control widgets to select different layers, nodes, and thresholds. The visualizations update automatically.
+
+### Creating a Gradient Test Case (vnittests)
 
 ---
 

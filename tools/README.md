@@ -1,100 +1,53 @@
 # Tools
-A technical description of available tools. 
+Available tools and overview. 
 
-## Gradient Flow Visualization in SMap Model
-The methodology for visualizing gradient flows in the SMap model, which processes a 2D image. The visualization employs a Sankey-style diagram to represent gradient flows between layers of the neural network.
+## Vtest
+A tool (the first of its kind at the time of its release) for visually debugging gradient flows between layers of neural networks (especially for convolutional layers). 
 
 ### Workflow
 1. **Compute Gradients**: 
-   - Given an input image, compute the gradients through the network.
-   - Gradients are stored  as 3D matrices per layer into a pickle file named `flow_info.pkl`.
+   - Given an input image, compute the gradients through the network being debugged.
+   - The gradients/gradient flows are stored in a Python dict, which is eventually saved to a pickle file with the (same) name `flow_info.pkl`, of the following format: 
+   
+   ```python
+   { 'activation_gradients': { 'conv2': array([[15.879998, 15.899999], [15.899999, 15.929999]], dtype=float32), 'conv3': array([[4.]], dtype=float32), 'conv1': array([[3.97, 3.98, 3.97, 3.97], [3.98, 4. , 3.98, 3.98], [3.97, 3.98, 3.97, 3.97], [3.97, 3.98, 3.97, 3.97]], dtype=float32) }, 'gradient_flows': { ('conv2', 'conv3'): array([[1.], [1.], [1.], [1.]], dtype=float32), ('conv1', 'conv2'): array([ [1. , 0.99, 0.99, 0.99], [1. , 1. , 0.99, 0.99], [0.99, 1. , 0.99, 0.99], [0.99, 1. , 0.99, 0.99], [1. , 0.99, 1. , 0.99], [1. , 1. , 1. , 1. ], [0.99, 1. , 0.99, 1. ], [0.99, 1. , 0.99, 1. ], [0.99, 0.99, 1. , 0.99], [0.99, 0.99, 1. , 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 1. , 0.99], [0.99, 0.99, 1. , 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 0.99, 1. ] ], dtype=float32) } }
+   ```
 
-2. **Flattening & Projection**:
-   - Convert 2D gradient maps into 1D representations.
-   - Map these 1D values to appropriate nodes in a Sankey diagram.
+   Accordingly,
 
-3. **Constructing the Sankey Diagram**:
-   - The first layer consists of individual input pixels.
-   - Each subsequent layer contains neurons (nodes), with connections representing the gradient flow intensity.
+   `flow_info['activation_gradients']`: A Python `dict` object where each key ("conv1", "conv2", ...) is the name you give to the neural network's layers and its content is a 2d tensor of the gradients at that layer (results of [user-defined backward hook](https://pytorch.org/docs/stable/notes/autograd.html#backward-hooks-execution) procedures or through accessing `.grad` property of pytorch tensors).
 
-4. **Rendering the Visualization**:
+   `flow_info['gradient_flows']`: A `dict` object where each key is a tuple, respectively, of the names of input and output layers representing a set of gradient flows, for node pairs connecting two consecutive layers, and its content is a 2-dimensional tensor whose first dimension is the number of nodes in the input layer and the second dimension is the number of nodes in the output layer.
+   
+3. **Flattening & Projection**:
+   - Convert 2D tensors gradients into 1D tensors via the flattening method of Numpy.
+   - Map the values ​​of the 1D tensor to the appropriate nodes in the Sankey diagram. 
+   
+     *Note: the ordering, at this mapping step, is preserved as when working with 2D arrays in `flow_info['gradient_flows']`, meaning that we can use this same mapping to number a node on the diagram into the corresponding rows (for the input layer) and columns (for the output layer) on the corresponding array.*
+
+4. **Constructing the Sankey Diagram and Heatmaps**:
+   - The first layer of the Sankey diagram consists of individual input pixels, which also correspond to nodes (neurons) in a convolutional neural network, of the Selected Layer (see the [Architecture & Usage guide](https://github.com/thienannguyen-cv/SMap/blob/73c6345e4703ebd856c6f432771e0bfa69e8a835/tools/testing/vtest/README.md)).
+   - The subsequent layer of the diagram contains nodes of the Output Layer, with connections representing the gradient flow intensity.
+   - The gradients at the nodes are projected onto two heatmaps named **Selected-Layer Gradient** and **Output-Layer Gradient**, corresponding to the input and output layers, respectively.
+   - Data from two numpy arrays from files named `input_representation.npy` and `target_representation.npy` will be displayed on heatmaps named **Input Representation** and **Target Representation** respectively. These heatmaps will play a role in evaluating the gradients while generating gradient test cases.
+
+5. **Rendering the Visualization**:
    - Use a Sankey diagram framework to generate the final visualization.
    - Each node represents a neuron or input pixel, and each edge represents the flow of gradients.
+   - Displays gradient values for selected layers.
+   - In Input Editing mode, the heatmap allows direct interaction to edit the underlying input values.
+   - A highlight mechanism on selected cells is integrated to distinguish gradient flows between two points on the heatmaps.
 
-### Input Data
+### UI
+Gradient flow visualization
 
+![Sankey Diagram](https://github.com/thienannguyen-cv/SMap/blob/73c6345e4703ebd856c6f432771e0bfa69e8a835/media/images/A_Sankey_diagram_illustrating_gradient_flow_in_a_n.png)
 
-### Diagram Illustration
-Below is a conceptual illustration of the gradient flow visualization:
+Visual gradient analyzing/debugging
 
-![Gradient Flow Sankey Diagram](https://raw.githubusercontent.com/thienannguyen-cv/SMap/75b05ba93fc8fbf5f8effe5099a76bfa3d14b571/media/images/A_Sankey_diagram_illustrating_gradient_flow_in_a_n.png)
+![Vtest UI](https://github.com/thienannguyen-cv/SMap/blob/73c6345e4703ebd856c6f432771e0bfa69e8a835/media/images/tools_vtest_interface.png)
 
 ### Implementation Details
+- **Source**: ./testing/vtest/vtest_tutorial.ipynb
 - **Language**: Python
 - **Libraries**: PyTorch for gradient computation, Matplotlib + Plotly (4.14.3) for visualization
-
-#### Code Snippet for Gradient Extraction
-```python
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-
-#########################################
-# 1. Define a simple CNN with 3 conv layers
-#########################################
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
-        # conv1: from 4x4 input → output remains 4x4
-        self.conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        # conv2: from 4x4 → 2x2 (stride=2)
-        self.conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        # conv3: from 2x2 → 1x1 (stride=2)
-        self.conv3 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        self.fcn = nn.Linear(16, 10)  # not used for interaction
-
-    def forward(self, x):
-        a1 = torch.tanh(self.conv1(x))    # shape: (1,1,4,4)
-        a2 = torch.tanh(self.conv2(a1))     # shape: (1,1,2,2)
-        a3 = torch.tanh(self.conv3(a2))     # shape: (1,1,1,1)
-        return self.fcn(a3.reshape(1, -1))
-
-model = SimpleCNN()
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
-
-
-#########################################
-# 2. Register hooks to capture gradients
-#########################################
-activation_gradients = {}
-gradient_flows = {}
-def get_activation_grad(name, connet2name=None):
-    def hook(module, grad_input, grad_output):
-        # TODO: Your gradient computing code. 
-    return hook
-
-model.conv1.register_backward_hook(get_activation_grad(None, "conv1"))
-model.conv2.register_backward_hook(get_activation_grad("conv1", "conv2"))
-model.conv3.register_backward_hook(get_activation_grad("conv2", "conv3"))
-
-#########################################
-# 3. Run forward/backward on a random input
-#########################################
-input_tensor = torch.randn(1, 1, 4, 4)
-label = torch.tensor([1])
-optimizer.zero_grad()
-a3 = model(input_tensor)
-loss = criterion(a3.reshape(1, -1), label)  # use conv3 output for loss
-loss.backward()
-
-#########################################
-# 4. Save gradient flow information for Viz
-#########################################
-import pickle
-flow_info = {"activation_gradients": activation_gradients, 
-             "gradient_flows": gradient_flows}
-with open('flow_info.pkl', 'wb') as f:
-    pickle.dump(flow_info, f)
-```

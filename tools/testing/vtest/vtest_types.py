@@ -10,33 +10,16 @@ class NoneBot(nn.Module):
     def forward(self, x):
         if self.module is not None:
             return self.module(x)
-        return x
+        return x+0
     
-class TestBot_Out(nn.Module):
+class TestBot_Target(nn.Module):
     def __init__(self, module=None, name="out"):
-        super(TestBot_Out, self).__init__()
+        super(TestBot_Target, self).__init__()
         def get_activation_grad(name='out'):
-            def hook(module, grad_input, grad_output):
-                if name is not None:
-                    # Lấy grad_out: shape [N, C_out, H_out, W_out]
-                    grad_out = (grad_output[0]).detach()
-                    N, C_out, H_out, W_out = grad_out.shape
-                    
-                    grad_out = (grad_out[0,0,:,:])
-                    idx_map = torch.arange(H_out*W_out, device=grad_out.device)+1
-                    gradient_flow = torch.zeros(H_out*W_out+1, H_out*W_out, device=grad_out.device)
-                    gradient_flow.scatter_add_(0, idx_map.reshape(1,-1).long(), grad_out.reshape(1,-1))
-                    gradient_flow = (gradient_flow[1:,:])
-                    
-                    gradient_flow = torch.abs(gradient_flow)
-                    gradient_flow[gradient_flow>1e-5] = 1.
-                    gradient_flow[gradient_flow<=1e-5] = .99
-
-                    # Lưu kết quả vào activation_gradients
-                    self.target_representation = gradient_flow.sum(axis=-1,keepdims=False).reshape(H_out, W_out).cpu().numpy()
-                    
-                    np.save("target_representation.npy", self.target_representation)
+            def hook(module, grad_inputs, grad_outputs):
+                pass
             return hook
+        self.testcase = None
         self.module = NoneBot()
         if module is not None:
             self.module = module
@@ -45,56 +28,105 @@ class TestBot_Out(nn.Module):
         self.module.register_backward_hook(get_activation_grad(self.name))
         
     def forward(self, x):
+        h, w = x.shape[-2], x.shape[-1]
+        self.target_representation = x.detach().cpu().numpy().reshape(h, w)
+        if self.testcase is None:
+            np.save(self.testcase.out_path+"target_representation.npy", self.target_representation)
+        else:
+            np.save(self.testcase.out_path+self.testcase.name+"_target_representation.npy", self.target_representation)
         return self.module(x)
     
-class TestBot(nn.Module):
-    def __init__(self, module=None, name="in", connet2name="out"):
-        super(TestBot, self).__init__()
-        def get_activation_grad(name, connet2name=None):
-            def hook(module, grad_input, grad_output):
+class TestBot_In(nn.Module):
+    def __init__(self, module=None, offset_in=0, name="in", connet2name="out"):
+        super(TestBot_In, self).__init__()
+        def get_activation_grad(name, connet2name="out"):
+            def hook(module, grad_inputs, grad_outputs):
                 if name is not None:
                     # Lấy grad_out: shape [N, C_out, H_out, W_out]
-                    grad_out = (grad_output[0]).detach()
-                    N, C_out, H_out, W_out = grad_out.shape
+                    grad_out, grad_in = None, None
+                    for grad in grad_inputs:
+                        if grad is not None:
+                            grad_in = grad
+                    H_in, W_in = (grad_in.shape[-2]), (grad_in.shape[-1])
+                    grad_in = (grad_in[:,:,offset_in,:,:]).reshape(H_in, W_in)
                     
-                    # Lấy grad_in: shape [N, C_out, C_in, H_in, W_in]
-                    grad_in = (grad_input[0]).detach()
-                    N, C_in, H_in, W_in = grad_in.shape
-                    grad_out = (grad_out[0,0,:,:])
-                    grad_in = (grad_in[0,0,:,:])
-                    assert C_out == C_out, "Mismatch in output channels."
-                    idx_map = torch.arange(H_out*W_out, device=grad_out.device)+1
-                    gradient_flow = torch.zeros(H_in*W_in+1, H_out*W_out, device=grad_out.device)
-                    gradient_flow.scatter_add_(0, idx_map.reshape(1,-1).long(), grad_out.reshape(1,-1))
-                    gradient_flow = (gradient_flow[1:,:])
-                    assert np.abs(gradient_flow.cpu().numpy().sum(axis=-1,keepdims=False)-(grad_in).cpu().numpy().reshape(-1)).sum() < 1e-7, "Mismatch in gradient values."
-                    gradient_flow = torch.abs(gradient_flow)
-                    gradient_flow[gradient_flow>1e-5] = 1.
-                    gradient_flow[gradient_flow<=1e-5] = .99
-
-                    # Lưu kết quả vào activation_gradients
-                    self.gradient_flows[(name, connet2name)] = gradient_flow.cpu().numpy()  # kích thước: (Len_in, Len_out)
-
-                    self.activation_gradients[name] = (self.gradient_flows[(name, connet2name)]).sum(axis=-1,keepdims=False).reshape(H_in, W_in)
-                    self.activation_gradients[connet2name] = (self.gradient_flows[(name, connet2name)]).sum(axis=0,keepdims=False).reshape(H_out, W_out)
+                    self.testcase.activation_gradients[name] = grad_in.cpu().numpy()
                     
+                    self.testcase.gradient_flows[(name, connet2name)] = None
                     import pickle
-                    np.save("input_representation.npy", self.input_representation)
-                    flow_info = {"activation_gradients": self.activation_gradients, 
-                                 "gradient_flows": self.gradient_flows}
-                    with open('flow_info.pkl', 'wb') as f:
-                        pickle.dump(flow_info, f)
+                    flow_info = {"activation_gradients": self.testcase.activation_gradients, 
+                                 "gradient_flows": self.testcase.gradient_flows}
+                    if self.testcase is None:
+                        np.save(self.testcase.out_path+"input_representation.npy", self.input_representation.reshape(H_in, W_in))
+                        with open(self.testcase.out_path+'flow_info.pkl', 'wb') as f:
+                            pickle.dump(flow_info, f)
+                    else:
+                        np.save(self.testcase.out_path+self.testcase.name+"_input_representation.npy", self.input_representation.reshape(H_in, W_in))
+                        with open(self.testcase.out_path+self.testcase.name+"_flow_info.pkl", 'wb') as f:
+                            pickle.dump(flow_info, f)
             return hook
+        self.testcase = None
         self.module = NoneBot()
         if module is not None:
             self.module = module
+        self.name = name
+        self.connet2name = connet2name
         self.input_representation = None
-        self.activation_gradients = {}
-        self.gradient_flows = {}
+        self.module.register_backward_hook(get_activation_grad(self.name, self.connet2name))
+        
+    def forward(self, x, mask):
+        h, w = mask.shape[-2], mask.shape[-1]
+        self.input_representation = mask.detach().cpu().numpy().reshape(h, w)
+        return self.module(x)
+    
+class TestBot_Out(nn.Module):
+    def __init__(self, module=None, offset_out=4, name="in", connet2name="out"):
+        super(TestBot_Out, self).__init__()
+        def get_activation_grad(name, connet2name="out"):
+            def hook(module, grad_inputs, grad_outputs):
+                if name is not None:
+                    # Lấy grad_out: shape [N, C_out, H_out, W_out]
+                    grad_out, grad_in = None, None
+                    for grad in grad_outputs:
+                        if grad is not None:
+                            grad_out = grad
+                    H_out, W_out = (grad_out.shape[-2]), (grad_out.shape[-1])
+                    
+                    grad_out = (grad_out[:,offset_out,:,:]).reshape(H_out, W_out)
+                    
+                    self.testcase.activation_gradients[connet2name] = grad_out.cpu().numpy()
+                    
+                    self.testcase.gradient_flows[(name, connet2name)] = None
+            return hook
+        self.testcase = None
+        self.module = NoneBot()
+        if module is not None:
+            self.module = module
         self.name = name
         self.connet2name = connet2name
         self.module.register_backward_hook(get_activation_grad(self.name, self.connet2name))
         
     def forward(self, x):
-        self.input_representation = (x[0,0,:,:]).detach().cpu().numpy()
         return self.module(x)
+
+class TestCase():
+    def __init__(self, name="", testbot_in=None, testbot_out=None, testbot_target=None):
+        self.out_path = "./tests/vtest_data/output/"
+        self.name = name
+        self.activation_gradients = {}
+        self.gradient_flows = {}
+        self.testbot_in = testbot_in
+        self.testbot_out = testbot_out
+        self.testbot_target = testbot_target
+        self.testbot_in.testcase = self
+        self.testbot_out.testcase = self
+        self.testbot_target.testcase = self
+        
+    def get_testbot_in(self):
+        return self.testbot_in
+    
+    def get_testbot_out(self):
+        return self.testbot_out
+    
+    def get_testbot_target(self):
+        return self.testbot_target

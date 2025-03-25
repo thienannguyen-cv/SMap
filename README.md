@@ -9,6 +9,7 @@
 | | |
 | --- | --- |
 | Testing | [![CI - Test](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml/badge.svg)](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml)|
+| Package | [![PyPI Latest Release](https://img.shields.io/badge/smap--torch-v0.1.2-blue)](https://pypi.org/project/smap-torch/)|
 
 ## What is it?
 An open source pytorch library for spatial mapping based on 2D representations, a concept in 3D inference that first appeared in the paper ["A Solution to the Fundamental Problem of 3D Inference Based on 2D Representations"](https://arxiv.org/abs/2211.04691) uploaded to arXiv. This project is the foundation of the "Dynamic 3D Inference" vision with three main pillars: 
@@ -23,15 +24,26 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 
 **Countable vision**: This concept will be revealed in the second phase of the project. 
 
-*Current Plans*: [here on Trello](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management)
+*Current Plans*: [Trello board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management)
 
 ## Table of Contents
 
 - [Installation](#installation)
+- [Integrated Applications](#integrated-applications)
 - [Next Release Features](#next-release-features)
 - [License](#license)
 
 ## Installation
+
+### Install from PyPI
+
+You can install **smap** directly from PyPI using pip:
+
+```bash
+pip install smap-torch
+```
+
+### Development Installation
 
 Follow these steps to install and set up SMap for development:
 
@@ -77,9 +89,11 @@ After installation, you can import the package in your python project, for examp
 from smap import SMap, SMap3x3
 ```
 
+## Integrated Applications
+- Camera Calibration as a PnI solver. 
 
 ## Next Release Features
-- Camera Calibration as a PnI solver. 
+- Depth Estimation for unique-shape objects. 
 
 ## License
 [Apache 2.0](LICENSE)

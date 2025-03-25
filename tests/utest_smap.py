@@ -6,7 +6,7 @@ from smap import *
 # the test case
 class SMap3x3UTestCase(unittest.TestCase):
     def setUp(self):
-        self.device = "cuda"
+        self.device = "cpu"
         self.img_shape = [8, 8]
         self.depth_map = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
         self.active_point_img_coords = [3,4]

@@ -33,6 +33,16 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 
 ## Installation
 
+### Install from PyPI
+
+You can install **smap** directly from PyPI using pip:
+
+```bash
+pip install smap-torch
+```
+
+### Development Installation
+
 Follow these steps to install and set up SMap for development:
 
 1. **Clone the repository:**

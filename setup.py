@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import re
 
 def read_version():
     with open("smap/__init__.py", "r", encoding="utf8") as f:
@@ -16,8 +17,8 @@ with open("requirements.txt", "r", encoding="utf-8") as req_file:
     ]
 
 setup(
-    name="smap",  # Tên package của bạn
-    version="0.1.0",  # Phiên bản khởi đầu
+    name="smap-torch",  # Tên package của bạn
+    version=read_version(),  # Phiên bản khởi đầu
     description="An open source pytorch library for spatial mapping based on 2D representations",  # Mô tả ngắn
     author="Thien An L. Nguyen",
     author_email="thienannguyen.cv@gmail.com",

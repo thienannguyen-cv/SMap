@@ -15,3 +15,5 @@ tutorial/.ipynb_checkpoints/vtest_tutorial-checkpoint.ipynb
 /smap/__pycache__
 /smap.egg-info
 /tests/__pycache__
+/smap_torch.egg-info
+/tests/vtest_data/output

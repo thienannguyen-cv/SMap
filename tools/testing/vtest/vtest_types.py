@@ -49,10 +49,8 @@ class TestBot_In(nn.Module):
                             grad_in = grad
                     H_in, W_in = (grad_in.shape[-2]), (grad_in.shape[-1])
                     grad_in = (grad_in[:,:,offset_in,:,:]).reshape(H_in, W_in)
-                    print("grad_in")
                     
                     self.testcase.activation_gradients[name] = grad_in.cpu().numpy()
-                    print(self.testcase.activation_gradients)
                     
                     self.testcase.gradient_flows[(name, connet2name)] = None
                     import pickle
@@ -64,8 +62,6 @@ class TestBot_In(nn.Module):
                             pickle.dump(flow_info, f)
                     else:
                         np.save(self.testcase.out_path+self.testcase.name+"_input_representation.npy", self.input_representation.reshape(H_in, W_in))
-                        print(self.testcase.out_path+self.testcase.name+"_flow_info.pkl")
-                        print((flow_info["activation_gradients"])["in"])
                         with open(self.testcase.out_path+self.testcase.name+"_flow_info.pkl", 'wb') as f:
                             pickle.dump(flow_info, f)
             return hook
@@ -78,13 +74,13 @@ class TestBot_In(nn.Module):
         self.input_representation = None
         self.module.register_backward_hook(get_activation_grad(self.name, self.connet2name))
         
-    def forward(self, x):
-        h, w = x.shape[-2], x.shape[-1]
-        self.input_representation = (x[:,:,2:3,:,:]).detach().cpu().numpy().reshape(h, w)
+    def forward(self, x, mask):
+        h, w = mask.shape[-2], mask.shape[-1]
+        self.input_representation = mask.detach().cpu().numpy().reshape(h, w)
         return self.module(x)
     
 class TestBot_Out(nn.Module):
-    def __init__(self, module=None, offset_out=3, name="in", connet2name="out"):
+    def __init__(self, module=None, offset_out=4, name="in", connet2name="out"):
         super(TestBot_Out, self).__init__()
         def get_activation_grad(name, connet2name="out"):
             def hook(module, grad_inputs, grad_outputs):

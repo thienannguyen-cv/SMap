@@ -1,0 +1,3 @@
+[submodule "applications/Camera Calibration/Sky-dataset"]
+	path = applications/Camera Calibration/Sky-dataset
+	url = https://github.com/thienannguyen-cv/Sky-dataset.git

@@ -1,11 +1,5 @@
 
 smap/__pycache__/smap.cpython-36.pyc
-/tutorial/sample_data/Sky303
-tutorial/dev_history.csv
-tutorial/model_0_0.pth
-tutorial/train_history_0_0.csv
-tutorial/orientation.png
-tutorial/position.png
 tutorial/.ipynb_checkpoints/tutorial-checkpoint.ipynb
 tutorial/.ipynb_checkpoints/vtest_tutorial-checkpoint.ipynb
 /tools/testing/__pycache__
@@ -17,3 +11,9 @@ tutorial/.ipynb_checkpoints/vtest_tutorial-checkpoint.ipynb
 /tests/__pycache__
 /smap_torch.egg-info
 /tests/vtest_data/output
+/applications/Camera Calibration/.ipynb_checkpoints
+applications/Camera Calibration/dev_history.csv
+applications/Camera Calibration/model_0_0.pth
+applications/Camera Calibration/orientation.png
+applications/Camera Calibration/position.png
+applications/Camera Calibration/train_history_0_0.csv

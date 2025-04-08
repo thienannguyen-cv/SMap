@@ -19,7 +19,7 @@ class SMap3x3VTestCase(unittest.TestCase):
         self.panel = list(np.where(np.ones([self.input_mask.shape[0], self.input_mask.shape[1]])))
         self.panel[0] = self.panel[0] + .5
         self.panel[1] = self.panel[1] + .5
-        self.smap3x3 = SMap3x3(self.input_mask.shape[0], self.input_mask.shape[1], self.camera, self.device).to(self.device)
+        self.smap = SMap(self.input_mask.shape[0], self.input_mask.shape[1], self.camera, self.device).to(self.device)
         try:
             if not os.path.exists("./tests/vtest_data/output"):
                 os.mkdir("./tests/vtest_data/output")
@@ -30,12 +30,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left"]
         test_id = np.random.choice(range(len(test_types)), size=None)
         test_type = test_types[test_id]
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"test_{test_type}_target", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr_x = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,:1,:,:], requires_grad=True).to(self.device)
         input_repr_y = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,1:2,:,:], requires_grad=True).to(self.device)
         input_repr_z = (input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,2:3,:,:]).to(self.device)
@@ -48,9 +47,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = self.vtestcase.testbot_target(target_repr).detach()
         
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_repr_x = self.vtestcase.testbot_in(input_repr_x, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -81,13 +81,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left", "still"]
         test_id = [np.random.choice(range(len(test_types)), size=None), np.random.choice(range(len(test_types)), size=None)]
         test_type = [test_types[test_id[0]], test_types[test_id[1]]]
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"test_{test_type[0]}_{test_type[1]}_target", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         offsetx, offsety = test_type_param_dict[test_type[0]]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr = input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])
         active_point_img_coords = np.where(self.input_mask!=0)
         temp = (input_repr[0,0,:,active_point_img_coords[0], active_point_img_coords[1]]).cpu().numpy()
@@ -107,10 +106,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = (1.*(target_repr)).reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]).to(self.device)
         target_repr = self.vtestcase.testbot_target(target_repr).detach()
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_repr_x = self.vtestcase.testbot_in(input_repr_x, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, None, self.input_mask.shape)
-        weights = smap3x3.go(weights[:,None,:,:,:], target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.calculate_weights(weights)
+        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -141,12 +142,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left"]
         test_id = np.random.choice(range(len(test_types)), size=None)
         test_type = test_types[test_id]
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"test_{test_type}_target", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr_x = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,:1,:,:], requires_grad=True).to(self.device)
         input_repr_y = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,1:2,:,:], requires_grad=True).to(self.device)
         input_repr_z = (input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,2:3,:,:]).to(self.device)
@@ -159,9 +159,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = self.vtestcase.testbot_target(target_repr).detach()
         
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_repr_y = self.vtestcase.testbot_in(input_repr_y, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -192,13 +193,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left", "still"]
         test_id = [np.random.choice(range(len(test_types)), size=None), np.random.choice(range(len(test_types)), size=None)]
         test_type = [test_types[test_id[0]], test_types[test_id[1]]]
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"test_{test_type[0]}_{test_type[1]}_target", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         offsetx, offsety = test_type_param_dict[test_type[0]]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr = input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])
         active_point_img_coords = np.where(self.input_mask!=0)
         temp = (input_repr[0,0,:,active_point_img_coords[0], active_point_img_coords[1]]).cpu().numpy()
@@ -218,10 +218,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = (1.*(target_repr)).reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]).to(self.device)
         target_repr = self.vtestcase.testbot_target(target_repr).detach()
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_repr_y = self.vtestcase.testbot_in(input_repr_y, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, None, self.input_mask.shape)
-        weights = smap3x3.go(weights[:,None,:,:,:], target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.calculate_weights(weights)
+        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -253,13 +255,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left", "still"]
         test_id = np.random.choice(range(len(test_types)), size=None)
         test_type = test_types[test_id]
-        
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"{testcase_name}_{test_type}", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr_x = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,:1,:,:], requires_grad=True).to(self.device)
         input_repr_y = nn.Parameter(input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,1:2,:,:], requires_grad=True).to(self.device)
         input_repr_z = (input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])[:,:,2:3,:,:]).to(self.device)
@@ -274,9 +274,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = self.vtestcase.testbot_target(target_repr)
         
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_mask = self.vtestcase.testbot_in(input_mask, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -313,13 +314,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left", "still"]
         test_id = [np.random.choice(range(len(test_types)), size=None), np.random.choice(range(len(test_types)), size=None)]
         test_type = [test_types[test_id[0]], test_types[test_id[1]]]
-        smap3x3 = self.smap3x3.to(self.device)
         self.vtestcase = TestCase(name=f"{testcase_name}_{test_type[0]}_{test_type[1]}_target", testbot_in=TestBot_In(), testbot_out=TestBot_Out(), testbot_target=TestBot_Target())
         
         z = 1e3*np.random.rand(1)[0]
         offsetx, offsety = test_type_param_dict[test_type[0]]
         input_repr = (z*(self.input_mask))
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap3x3.camera_matrix_inv, self.device)
+        input_repr = utils.to_3d(input_repr.reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]), self.input_mask.shape[0], self.input_mask.shape[1], self.panel, self.input_mask.shape, self.input_mask.shape, self.smap.smap3x3.camera_matrix_inv, self.device)
         input_repr = input_repr.reshape(1,1,3, self.input_mask.shape[0], self.input_mask.shape[1])
         active_point_img_coords = np.where(self.input_mask!=0)
         temp = (input_repr[0,0,:,active_point_img_coords[0], active_point_img_coords[1]]).cpu().numpy()
@@ -339,10 +339,12 @@ class SMap3x3VTestCase(unittest.TestCase):
         target_repr = (1.*(target_repr)).reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]).to(self.device)
         target_repr = self.vtestcase.testbot_target(target_repr).detach()
         
-        smap3x3.zero_grad()
+        self.smap.smap3x3.zero_grad()
         input_mask = self.vtestcase.testbot_in(input_mask, input_mask)
-        weights = smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, None, self.input_mask.shape)
-        weights = smap3x3.go(weights[:,None,:,:,:], target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.calculate_weights(weights)
+        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     

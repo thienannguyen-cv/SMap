@@ -23,6 +23,71 @@ def to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix
 def to_3d(z, height, width, panels, original_size, window_size, camera_matrix_inv, device):
     regr_co = to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix_inv, device).reshape(z.size(0),z.size(1),3,3,-1,3)
     return (regr_co[:,:,1,1,:,:]).permute(0,1,3,2).reshape(-1,3, height, width)
+    
+def agg(x, ind=None, factor=None):
+    fct = 0.
+    if factor is not None:
+        fct = factor
+    x = x + ((x!=0.).float()-1.)*(-fct)
+    
+    sizes = list(x.size())
+    sizes[2] = 3
+    sizes[3] = 3
+    
+    x = x.reshape(*sizes)
+    
+    sizes[2] = 1
+    sizes[3] = 1
+    
+    def abs_alignment(x, relx, rely, fct):
+        x = 1.*(x[:,:,relx,rely,:,:,:])
+        if relx<1:
+            x = torch.cat([(x[:,:,:,1:,:]), torch.ones_like(x[:,:,:,:1,:])*fct],dim=-2)
+        if relx>1:
+            x = torch.cat([torch.ones_like(x[:,:,:,-1:,:])*fct, (x[:,:,:,:-1,:])],dim=-2)
+        if rely<1:
+            x = torch.cat([(x[:,:,:,:,1:]), torch.ones_like(x[:,:,:,:,:1])*fct],dim=-1)
+        if rely>1:
+            x = torch.cat([torch.ones_like(x[:,:,:,:,-1:])*fct, (x[:,:,:,:,:-1])],dim=-1)
+        return x
+    
+    ys = []
+    for i in range(3):
+        for j in range(3):
+            ys.append(abs_alignment(x, i, j, fct).reshape(*sizes))
+    
+    sizes[2] = 3*3
+    sizes[3] = 1
+    
+    x = torch.cat(ys,dim=2).reshape(*sizes) # [y00,y01,y02,y10,y11,y12,y20,y21,y22]
+
+    if ind is None:
+        return x
+    if sizes[4] == 4:
+        sizes[4] = 1
+        x0 = (x[:,:,:,:,:1,:,:]).reshape(*sizes)
+        x1 = (x[:,:,:,:,1:2,:,:]).reshape(*sizes)
+        x2 = (x[:,:,:,:,2:3,:,:]).reshape(*sizes)
+        x3 = (x[:,:,:,:,3:,:,:]).reshape(*sizes)
+        
+        sizes[2] = 1
+        sizes[3] = 1
+        
+        x0 = torch.sum(torch.where(ind,x0,torch.zeros_like(x0)),dim=2,keepdim=True)
+        x1 = torch.sum(torch.where(ind,x1,torch.zeros_like(x1)),dim=2,keepdim=True)
+        x2 = torch.sum(torch.where(ind,x2,torch.zeros_like(x2)),dim=2,keepdim=True)
+        x3 = torch.sum(torch.where(ind,x3,torch.zeros_like(x3)),dim=2,keepdim=True)
+        
+        return torch.cat([x0.reshape(*sizes), x1.reshape(*sizes), x2.reshape(*sizes), x3.reshape(*sizes)], dim=4)
+    
+    sizes[4] = 1
+    x0 = (x[:,:,:,:,:1,:,:]).reshape(*sizes)
+
+    sizes[2] = 1
+    sizes[3] = 1
+
+    x0 = torch.sum(torch.where(ind,x0,torch.zeros_like(x0)),dim=2,keepdim=True)
+    return x0.reshape(*sizes)
 
 def recover_size(x, n, zoom):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()

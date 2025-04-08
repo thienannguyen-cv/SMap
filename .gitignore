@@ -17,3 +17,8 @@ applications/Camera Calibration/model_0_0.pth
 applications/Camera Calibration/orientation.png
 applications/Camera Calibration/position.png
 applications/Camera Calibration/train_history_0_0.csv
+/test-results
+coverage.svg
+.coverage
+/applications/Depth Estimation/Lamp-dataset/Lamp303
+/applications/Depth Estimation/.ipynb_checkpoints

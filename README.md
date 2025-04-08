@@ -9,7 +9,7 @@
 | | |
 | --- | --- |
 | Testing | [![CI - Test](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml/badge.svg)](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml)|
-| Package | [![PyPI Latest Release](https://img.shields.io/badge/smap--torch-v0.1.2-blue)](https://pypi.org/project/smap-torch/)|
+| Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/smap-torch.svg)](https://pypi.org/project/smap-torch/)|
 
 ## What is it?
 An open source pytorch library for spatial mapping based on 2D representations, a concept in 3D inference that first appeared in the paper ["A Solution to the Fundamental Problem of 3D Inference Based on 2D Representations"](https://arxiv.org/abs/2211.04691) uploaded to arXiv. This project is the foundation of the "Dynamic 3D Inference" vision with three main pillars: 

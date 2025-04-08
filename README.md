@@ -29,6 +29,7 @@ For more details, please read the paper: https://arxiv.org/abs/2211.04691.
 ## Table of Contents
 
 - [Installation](#installation)
+- [Integrated Applications](#integrated-applications)
 - [Next Release Features](#next-release-features)
 - [License](#license)
 
@@ -88,7 +89,7 @@ After installation, you can import the package in your python project, for examp
 from smap import SMap, SMap3x3
 ```
 
-## Applications
+## Integrated Applications
 - Camera Calibration as a PnI solver. 
 
 ## Next Release Features

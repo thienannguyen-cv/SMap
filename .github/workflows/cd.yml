@@ -24,24 +24,31 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.8"
 
-      - name: Build release distributions
+      - name: Install dependencies
         run: |
-          # NOTE: put your own distribution build steps here.
-          python -m pip install build
-          python -m build
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel twine
+
+      - name: Build distribution packages
+        run: |
+          python setup.py sdist bdist_wheel
 
       - name: Run unit tests
         run: |
-          python -m unittest discover -s tests
+          python -m unittest discover -s tests -p "[vu]test*.py"
 
       - name: Create release tag if not exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Đọc phiên bản từ file __init__.py (giả sử package của bạn ở thư mục smap)
-          VERSION=$(python -c "import re; f=open('smap/__init__.py'); print(re.search(r'^__version__\s*=\s*[\"']([^\"']+)[\"']', f.read(), re.M).group(1))")
+          VERSION=$(python -c "import re; f=open('smap/__init__.py'); print(re.search(r'^__version__\s*=\s*[\"\']([^\"\']+)[\"\']', f.read(), re.M).group(1))")
           echo "Found version: $VERSION"
           
           # Kiểm tra xem tag v{VERSION} đã tồn tại hay chưa
@@ -74,11 +81,11 @@ jobs:
     environment:
       name: pypi
       # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/p/YOURPROJECT
+      # url: https://pypi.org/p/smap-torch
       #
       # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
       # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
+      # url: url: https://pypi.org/p/smap-torch/${{ github.event.release.name }}
 
     steps:
       - name: Retrieve release distributions

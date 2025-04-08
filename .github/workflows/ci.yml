@@ -32,6 +32,7 @@ jobs:
       
       - name: Run unit tests
         run: |
+          pip install unittest-xml-reporting==3.1.0
           python -m xmlrunner discover -s tests -p "[vu]test*.py" -o test-results
 
       - name: Upload test results (optional)

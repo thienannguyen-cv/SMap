@@ -60,6 +60,10 @@ jobs:
           name: coverage-badge-${{ matrix.python-version }}-${{ github.run_id }}
           path: coverage.svg
 
+      # Cài đặt pandoc
+      - name: Install pandoc
+        run: sudo apt-get install pandoc
+
       # Chỉ chạy bước deploy cho python-version 3.8 để tránh việc deploy nhiều lần
       - name: Prepare README for GitHub Pages
         if: ${{ matrix.python-version == '3.8' }}

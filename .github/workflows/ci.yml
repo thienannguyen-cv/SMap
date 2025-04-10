@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9" ]
+        python-version: [ "3.8" ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,14 +26,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools
           pip install -r requirements.txt
+          pip install coverage coverage-badge==1.1.2 unittest-xml-reporting==3.1.0
 
       - name: Install package in editable mode
         run: pip install -e .
       
-      - name: Run unit tests
+      - name: Run unit tests and generate coverage
         run: |
-          pip install unittest-xml-reporting==3.1.0
-          python -m xmlrunner discover -s tests -p "[vu]test*.py" -o test-results
+          # Chạy tests bằng xmlrunner và đo coverage (chỉ định --source nếu bạn muốn bao gồm các file của package)
+          coverage run --source=smap -m xmlrunner discover -s tests -p "[vu]test*.py" -o test-results
+          # Tạo file báo cáo XML của coverage
+          coverage xml
+
+      - name: Generate coverage badge
+        run: |
+          # Tạo file badge SVG (ghi đè nếu đã có)
+          coverage-badge -o coverage.svg -f
 
       - name: Upload test results (optional)
         if: always()
@@ -41,3 +49,26 @@ jobs:
         with:
           name: test-results-${{ matrix.python-version }}-${{ github.run_id }}
           path: test-results/
+
+      - name: Upload coverage badge (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-badge-${{ matrix.python-version }}-${{ github.run_id }}
+          path: coverage.svg
+
+      # Chỉ chạy bước deploy cho python-version 3.8 để tránh việc deploy nhiều lần
+      - name: Prepare coverage badge for GitHub Pages
+        if: ${{ matrix.python-version == '3.8' }}
+        run: |
+          mkdir -p gh-pages-folder
+          cp coverage.svg gh-pages-folder/coverage.svg
+
+      - name: Deploy coverage badge to GitHub Pages
+        if: ${{ matrix.python-version == '3.8' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: gh-pages-folder
+          commit_message: "Update coverage badge [skip ci]"

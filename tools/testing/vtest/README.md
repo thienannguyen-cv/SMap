@@ -1,20 +1,23 @@
 # Gradient Flow Visualization with Interactive Debugging Mode
 
 ## 1. Overview
-
-This project extends the gradient flow visualization tool for the **SMap model** by adding an **Interactive Debugging Mode**. In addition to displaying gradient flows between layers using a Sankey-style diagram, the tool now allows users to directly modify the heatmap values (limited to 0 or 1) for visual debugging of gradients.
+A tool for visually debugging gradient flows between convolutional layers of neural networks. 
 
 ## 2. Main Features
+What are supported? 
 
 ### 2.1. Gradient Flow Visualization
 - **Display Gradient Flow**:  
+  - Specify a z value in the "Z:" textbox.
   - Uses a Sankey diagram to represent gradient flows between layers.
-- **Gradient Data Processing**:  
-  - Extracts, flattens, and normalizes gradients stored in the `flow_info.pkl` file.
+- **Interactive UI for visual gradient debugging**:  
+  - Use heatmaps for displaying gradient values. 
+  - Highlights points that have gradients to a selected node in the convolutional layer (input). 
+  - Support padding correction via the Offset Adjustments feature. 
   
 ### 2.2. Interactive Debugging
 - **Input-Editing Mode**:  
-  - Users can click on individual heatmap cells to toggle values between 0 and 1, which serves as a visual debugging tool for gradients.
+  - Users can click on individual heatmap cells to toggle values between 0 and z, which serves as a visual debugging tool for gradients.
 - **Save Input**:  
   - The **Save** button allows users to store the modified input values in `flow_info.pkl`, which will later be processed by [Adapters](https://refactoring.guru/design-patterns/adapter) to generate gradient flow information.
 - **Gradient-Debugging Workflow**:  
@@ -27,7 +30,17 @@ This project extends the gradient flow visualization tool for the **SMap model**
 
 ### 3.1. Data Processing
 - **Gradient Extraction**:  
-  - Computes gradients for each layer and saves them in the `flow_info.pkl` file.
+  - Computes gradients for each layer and stores them in a Python dict, which is eventually saved to a pickle file with the (same) name `flow_info.pkl`, of the following format: 
+   
+   ```python
+   { 'activation_gradients': { 'conv2': array([[15.879998, 15.899999], [15.899999, 15.929999]], dtype=float32), 'conv3': array([[4.]], dtype=float32), 'conv1': array([[3.97, 3.98, 3.97, 3.97], [3.98, 4. , 3.98, 3.98], [3.97, 3.98, 3.97, 3.97], [3.97, 3.98, 3.97, 3.97]], dtype=float32) }, 'gradient_flows': { ('conv2', 'conv3'): array([[1.], [1.], [1.], [1.]], dtype=float32), ('conv1', 'conv2'): array([ [1. , 0.99, 0.99, 0.99], [1. , 1. , 0.99, 0.99], [0.99, 1. , 0.99, 0.99], [0.99, 1. , 0.99, 0.99], [1. , 0.99, 1. , 0.99], [1. , 1. , 1. , 1. ], [0.99, 1. , 0.99, 1. ], [0.99, 1. , 0.99, 1. ], [0.99, 0.99, 1. , 0.99], [0.99, 0.99, 1. , 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 1. , 0.99], [0.99, 0.99, 1. , 1. ], [0.99, 0.99, 0.99, 1. ], [0.99, 0.99, 0.99, 1. ] ], dtype=float32) } }
+   ```
+
+   Accordingly,
+
+   `flow_info['activation_gradients']`: A Python `dict` object where each key ("conv1", "conv2", ...) is the name you give to the neural network's layers and its content is a 2d tensor of the gradients at that layer (results of [user-defined backward hook](https://pytorch.org/docs/stable/notes/autograd.html#backward-hooks-execution) procedures or through accessing `.grad` property of pytorch tensors).
+
+   `flow_info['gradient_flows']`: A `dict` object where each key is a tuple, respectively, of the names of input and output layers representing a set of gradient flows, for node pairs connecting two consecutive layers, and its content is a 2-dimensional tensor whose first dimension is the number of nodes in the input layer and the second dimension is the number of nodes in the output layer.
 - **Flow Matrix Computation**:  
   - Uses values from `gradient_flows`.  
   - If a flow is undefined (set to `None`), it is interpolated using the available gradient data from `activation_gradients` to maintain consistency with chain rule calculations.
@@ -98,7 +111,7 @@ class DebugAdapter:
 
 1. **Install Dependencies:**
    ```bash
-   pip install plotly==5.12.0 ipywidgets==7.6.5 matplotlib==3.3.4 torch==1.3.1 torchvision==0.4.2 numpy==1.19.5 --force-reinstall
+   pip install numpy==1.19.5 plotly==5.12.0 ipywidgets==7.6.5 matplotlib==3.3.4 --force-reinstall
    ```
 2. **Configure DEBUG_FOLDER:**  
    Set the `DEBUG_FOLDER` variable (e.g., `"../../../tests/output"`) to point to your data directory.
@@ -136,7 +149,6 @@ class DebugAdapter:
 ## 6. Future Development
 
 - **Extended Debugging Capabilities:**  
-  - Support for input modifications beyond binary (0/1).
   - Integration of real-time gradient feedback during training.
   
 - **Enhanced Adapter Interface:**  

@@ -61,17 +61,18 @@ jobs:
           path: coverage.svg
 
       # Chỉ chạy bước deploy cho python-version 3.8 để tránh việc deploy nhiều lần
-      - name: Prepare coverage badge for GitHub Pages
+      - name: Prepare README for GitHub Pages
         if: ${{ matrix.python-version == '3.8' }}
         run: |
           mkdir -p gh-pages-folder
+          pandoc README.md -o gh-pages-folder/index.html  # Chuyển README.md thành index.html
           cp coverage.svg gh-pages-folder/coverage.svg
 
-      - name: Deploy coverage badge to GitHub Pages
+      - name: Deploy to GitHub Pages
         if: ${{ matrix.python-version == '3.8' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: gh-pages-folder
-          commit_message: "Update coverage badge [skip ci]"
+          commit_message: "Update README for GitHub Pages"

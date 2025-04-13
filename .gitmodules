@@ -4,3 +4,6 @@
 [submodule "tools/testing/vtest/vnittest"]
 	path = tools/testing/vtest/vnittest
 	url = https://github.com/thienannguyen-cv/vnittest
+[submodule "applications\\Depth Estimation\\Lamp-dataset"]
+	path = applications\\Depth Estimation\\Lamp-dataset
+	url = https://github.com/thienannguyen-cv/Lamp-dataset

@@ -44,7 +44,7 @@ class SMapUTestCase(unittest.TestCase):
             
             allow = self.smap.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
-            actual = self.smap.prepare_flows_for_coord(allow, weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            actual = self.smap.prepare_flows_for_coord(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
             offset = np.random.choice(range(3*3),size=None)
             referenced_point_x = active_point_img_coords[0]-(offset//3)
@@ -77,7 +77,7 @@ class SMapUTestCase(unittest.TestCase):
             
             allow = self.smap.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
-            actual = self.smap.prepare_flows_for_coord(allow, weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            actual = self.smap.prepare_flows_for_coord(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
             offset = np.random.choice(range(3*3),size=None)
             referenced_point_x = active_point_img_coords[0]-(offset//3)
@@ -128,7 +128,7 @@ class SMapUTestCase(unittest.TestCase):
             
             allow = self.smap.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
-            actual = self.smap.prepare_flows_for_mask(allow, weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            actual = self.smap.prepare_flows_for_mask(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
             offset = np.random.choice(range(3*3),size=None)
             try:
@@ -155,7 +155,7 @@ class SMapUTestCase(unittest.TestCase):
             
             allow = self.smap.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
-            actual = self.smap.prepare_flows_for_mask(allow, weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            actual = self.smap.prepare_flows_for_mask(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
             
             offset = np.random.choice(range(3*3),size=None)
             try:

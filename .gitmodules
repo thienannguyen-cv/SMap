@@ -6,4 +6,4 @@
 	url = https://github.com/thienannguyen-cv/Lamp-dataset.git
 [submodule "tools/testing/vtest/vnittest"]
 	path = tools/testing/vtest/vnittest
-	url = https://github.com/thienannguyen-cv/vnittest
+	url = https://github.com/thienannguyen-cv/vnittest.git

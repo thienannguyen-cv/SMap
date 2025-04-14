@@ -89,18 +89,47 @@ def agg(x, ind=None, factor=None):
     x0 = torch.sum(torch.where(ind,x0,torch.zeros_like(x0)),dim=2,keepdim=True)
     return x0.reshape(*sizes)
 
-def recover_size(x, n, zoom):
+def add_pad(x_value, y_value, z_value, r_mask, original_size):
+    shapes = x_value.size()
+    BATCH_SIZE, height, width = shapes[0], shapes[-2], shapes[-1]
+
+    # 1. Prepare configuration for to_3d unit
+    height = height + 2**0 + 2**0
+    width = width + 2**0 + 2**0
+
+    panels = list(np.where(np.ones([height, width])))
+    offset_codes = ((height-original_size[0]), (width-original_size[1]))
+    panels[0] = panels[0] - (offset_codes[0]//2) + .5
+    panels[1] = panels[1] - (offset_codes[1]//2) + .5
+    #######################
+
+
+    # 2. Prepare input tensors
+    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:,:(2**0)]), x_value, torch.zeros_like(x_value[:,:,:,:,:(2**0)])], dim=-1)
+    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:(2**0),:]), x_value, torch.zeros_like(x_value[:,:,:,:(2**0),:])], dim=-2)
+
+    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:,:(2**0)]), y_value, torch.zeros_like(y_value[:,:,:,:,:(2**0)])], dim=-1)
+    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:(2**0),:]), y_value, torch.zeros_like(y_value[:,:,:,:(2**0),:])], dim=-2)
+
+    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:,:(2**0)]), z_value, torch.zeros_like(z_value[:,:,:,:,:(2**0)])], dim=-1)
+    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:(2**0),:]), z_value, torch.zeros_like(z_value[:,:,:,:(2**0),:])], dim=-2)
+
+    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:,:(2**0)]), r_mask, torch.zeros_like(r_mask[:,:,:,:,:(2**0)])], dim=-1)
+    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:(2**0),:]), r_mask, torch.zeros_like(r_mask[:,:,:,:(2**0),:])], dim=-2)
+    
+    return x_value, y_value, z_value, r_mask, panels
+
+def recover_size(x, n, zoom=0):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()
-    C_zoom = C_zoom//(3*3)
     C_zoom_2 = int(np.sqrt(C_zoom))
-    x = (1.*x).reshape(BATCH_SIZE,-1,3*3,h_out, w_out)
-    for i in range(zoom):
+    x = (1.*x).reshape(BATCH_SIZE,C_zoom,-1,h_out, w_out)
+    for i in range(n-zoom,n):
         C_zoom = C_zoom//4
         C_zoom_2 = C_zoom_2//2
         h_out = h_out*2
         w_out = w_out*2
-        x = x.reshape(BATCH_SIZE,2,C_zoom_2,2,C_zoom_2,3*3,h_out//2, w_out//2).permute(0,2,4,5,6,1,7,3).reshape(BATCH_SIZE,C_zoom,3*3,h_out, w_out)
-    return torch.max((x>specials.OFF_THRESH).float(),dim=2,keepdim=False).values.reshape(BATCH_SIZE,1,h_out, w_out)
+        x = x.reshape(BATCH_SIZE,2,C_zoom_2,2,C_zoom_2,-1,h_out//2, w_out//2).permute(0,2,4,5,6,1,7,3).reshape(BATCH_SIZE,C_zoom,-1,h_out, w_out)
+    return x
 
 def save_for_vtest(path,activation_gradients, gradient_flows, input_representation, target_representation):
     import pickle

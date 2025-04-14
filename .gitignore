@@ -22,3 +22,4 @@ coverage.svg
 .coverage
 /applications/Depth Estimation/Lamp-dataset/Lamp303
 /applications/Depth Estimation/.ipynb_checkpoints
+/applications/Camera Calibration/Lamp-dataset

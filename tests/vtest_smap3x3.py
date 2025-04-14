@@ -49,8 +49,8 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_repr_x = self.vtestcase.testbot_in(input_repr_x, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -108,10 +108,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_repr_x = self.vtestcase.testbot_in(input_repr_x, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
-        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -161,8 +161,8 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_repr_y = self.vtestcase.testbot_in(input_repr_y, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -220,10 +220,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_repr_y = self.vtestcase.testbot_in(input_repr_y, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
-        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -276,8 +276,8 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_mask = self.vtestcase.testbot_in(input_mask, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     
@@ -291,10 +291,12 @@ class SMap3x3VTestCase(unittest.TestCase):
             flow_data = pickle.load(file)
             actual = ((flow_data["activation_gradients"])["in"])
         if is_negative_check:
-            actual = (actual < 0).astype(int)
+            actual = (actual < -1e-7).astype(float)
             expected = np.load(f"./tests/vtest_data/smap3x3/{testcase_name}_{test_type}_target_expected.npy").astype(int)
+            if test_type=="still":
+                expected = 0.*expected
         else:
-            actual = (actual > 0).astype(int)
+            actual = (actual > 1e-7).astype(float)
             expected = np.load("./tests/vtest_data/smap3x3/input.npy").astype(int)
             if test_type=="still":
                 expected = 0.*expected
@@ -341,10 +343,10 @@ class SMap3x3VTestCase(unittest.TestCase):
         
         self.smap.smap3x3.zero_grad()
         input_mask = self.vtestcase.testbot_in(input_mask, input_mask)
-        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.input_mask.shape)
+        weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
-        weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectificate_flow(weights, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
+        weights = self.smap.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)
     

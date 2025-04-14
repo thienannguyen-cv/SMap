@@ -89,6 +89,36 @@ def agg(x, ind=None, factor=None):
     x0 = torch.sum(torch.where(ind,x0,torch.zeros_like(x0)),dim=2,keepdim=True)
     return x0.reshape(*sizes)
 
+def add_pad(x_value, y_value, z_value, r_mask, original_size):
+    shapes = x_value.size()
+    BATCH_SIZE, height, width = shapes[0], shapes[-2], shapes[-1]
+
+    # 1. Prepare configuration for to_3d unit
+    height = height + 2**0 + 2**0
+    width = width + 2**0 + 2**0
+
+    panels = list(np.where(np.ones([height, width])))
+    offset_codes = ((height-original_size[0]), (width-original_size[1]))
+    panels[0] = panels[0] - (offset_codes[0]//2) + .5
+    panels[1] = panels[1] - (offset_codes[1]//2) + .5
+    #######################
+
+
+    # 2. Prepare input tensors
+    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:,:(2**0)]), x_value, torch.zeros_like(x_value[:,:,:,:,:(2**0)])], dim=-1)
+    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:(2**0),:]), x_value, torch.zeros_like(x_value[:,:,:,:(2**0),:])], dim=-2)
+
+    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:,:(2**0)]), y_value, torch.zeros_like(y_value[:,:,:,:,:(2**0)])], dim=-1)
+    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:(2**0),:]), y_value, torch.zeros_like(y_value[:,:,:,:(2**0),:])], dim=-2)
+
+    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:,:(2**0)]), z_value, torch.zeros_like(z_value[:,:,:,:,:(2**0)])], dim=-1)
+    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:(2**0),:]), z_value, torch.zeros_like(z_value[:,:,:,:(2**0),:])], dim=-2)
+
+    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:,:(2**0)]), r_mask, torch.zeros_like(r_mask[:,:,:,:,:(2**0)])], dim=-1)
+    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:(2**0),:]), r_mask, torch.zeros_like(r_mask[:,:,:,:(2**0),:])], dim=-2)
+    
+    return x_value, y_value, z_value, r_mask, panels
+
 def recover_size(x, n, zoom):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()
     C_zoom = C_zoom//(3*3)

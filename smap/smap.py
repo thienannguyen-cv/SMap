@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from smap import specials, utils
+import matplotlib.pyplot as plt
 
 def flip(x, dim):
     dim = x.dim() + dim if dim < 0 else dim
@@ -55,17 +56,20 @@ class SMap3x3(nn.Module):
         x_z_value = (torch.cat([x_value, y_value, z_value], dim=2)).reshape(BATCH_SIZE,-1,3,height, width)
         
         key_query = self.calculate_key_query(x_value, y_value, z_value, panels, original_size)
-
+        
         # 4. Setting proper tensor, named `weights_b', for differentiable rendering
-        new_r_mask = torch.zeros_like(key_query)
+        weights_b = torch.zeros_like(key_query)
         ind = torch.max(-key_query,dim=2,keepdim=True).indices
         ind_mask = F.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,height, width,3*3).permute(0,1,4,2,3).reshape(BATCH_SIZE,-1,3*3,height, width)
-        new_r_mask[ind_mask>.5] = 1.
-        new_r_mask = torch.where((r_mask+key_query*0.)>specials.OFF_THRESH, new_r_mask, torch.zeros_like(new_r_mask))
-        weights_b = (1.*new_r_mask).reshape(BATCH_SIZE,-1,3,3,height, width)
-        new_r_mask[:,:,4,:,:] = torch.where(r_mask.reshape(BATCH_SIZE,-1,height, width)>specials.OFF_THRESH, new_r_mask[:,:,4,:,:], torch.ones_like(new_r_mask[:,:,4,:,:]))
-        new_x_z_value = torch.einsum('bcsthw,bczhw->bcstzhw', weights_b.detach(), x_z_value)
-        new_r_mask = (new_r_mask.detach()*r_mask).reshape(BATCH_SIZE,-1,3,3,1,height, width)
+        weights_b[ind_mask>.5] = 1.
+        weights_b = torch.where(((r_mask>specials.OFF_THRESH).float()*(z_values>0.).float()+key_query*0.)>.5, weights_b, torch.zeros_like(weights_b))
+        temp = torch.zeros_like(weights_b)
+        temp[:,:,4,:,:] = 1.
+        weights_b = torch.where((0.*weights_b+(1.-(r_mask>specials.OFF_THRESH).float()*(~(z_values>0.)).float()))>.5, weights_b, temp)
+        new_x_z_value = torch.einsum('bcsthw,bczhw->bcstzhw', (1.*weights_b).detach().reshape(BATCH_SIZE,-1,3,3,height, width), x_z_value)
+        
+        weights_b = torch.where((0.*weights_b+((r_mask>specials.OFF_THRESH).float()*(z_values>0.).float()))>.5, weights_b, temp)
+        new_r_mask = ((1.*weights_b).detach()*r_mask).reshape(BATCH_SIZE,-1,3,3,1,height, width)
         new_x_z_mask_value = torch.cat([new_x_z_value, new_r_mask], dim=4)
         #######################
         
@@ -76,43 +80,70 @@ class SMap(nn.Module):
         super(SMap,self).__init__()
         self.n = n
         self.smap3x3 = SMap3x3(window_h, window_w, camera_matrix, device)
+        from tools.testing.vtest.vtest_types import NoneBot
+        def get_activation_grad():
+            def hook(module, grad_input, grad_output):
+                print("in.shape")
+                print(grad_output[0].shape)
+                ofs = 2
+                print((grad_output[0])[1:ofs,:,:,:].min())
+                print((grad_output[0])[1:ofs,:,:,:].max())
+                grad_out = torch.sum((grad_output[0])[1:ofs,:,:,:],dim=1,keepdim=False)
+                print(grad_out)
+                plt.figure(figsize=(8,8))
+                plt.imshow((grad_out.permute(1,2,0).detach().cpu().numpy()[:,:,-1]).squeeze())
+                plt.show()
+            return hook
+
+        self.bot = NoneBot()
+        self.bot.register_backward_hook(get_activation_grad())
     
-    def compute_allow_matrix(self, ws, tgt_repr):
-        BATCH_SIZE, height, width, w_zoom, h_zoom = ws.shape[0], ws.shape[-2], ws.shape[-1], tgt_repr.shape[-1], tgt_repr.shape[-2]
+    def compute_allow_matrix(self, weight, target_repr):
+        BATCH_SIZE, height, width, w_zoom, h_zoom = weight.shape[0], weight.shape[-2], weight.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
         
-        ws = utils.agg(ws).reshape(BATCH_SIZE,-1,3*3,1,height, width)
+        weight = utils.agg(weight).reshape(BATCH_SIZE,-1,3*3,1,height, width)
         
-        allow = 2.*torch.ones_like(ws)
-        allow[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)] = (ws[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)])*tgt_repr.reshape(BATCH_SIZE,1,1,1,h_zoom, w_zoom)
+        allow = 2.*torch.ones_like(weight)
+        allow[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)] = (weight[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)])*target_repr.reshape(BATCH_SIZE,-1,1,1,h_zoom, w_zoom)
         allow = utils.agg(flip(allow,2).reshape(BATCH_SIZE,-1,3,3,1,height, width)).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
-        allow = torch.max(allow,dim=2,keepdim=True)[0]
+        allow = torch.max(allow,dim=2,keepdim=True).values
         allow = 1.-allow
-        return allow
+        return allow.detach()
     
-    def prepare_flows_for_mask(self, allow, tgt_repr):
-        BATCH_SIZE, height, width, w_zoom, h_zoom = allow.shape[0], allow.shape[-2], allow.shape[-1], tgt_repr.shape[-1], tgt_repr.shape[-2]
+    def prepare_flows_for_mask(self, allow, weights_b, target_repr):
+        BATCH_SIZE, height, width, w_zoom, h_zoom = allow.shape[0], allow.shape[-2], allow.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
         
+        target_repr = target_repr.long().reshape(BATCH_SIZE,-1,1,h_zoom, w_zoom)
+        
+        n_flow = (allow==0.).float()*(weights_b>specials.OFF_THRESH).float().reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
+        n_flow = utils.agg(n_flow.reshape(BATCH_SIZE,-1,3,3,1,height, width))
+        
+        allow = (1.-(allow==0.).float())
         allow = torch.cat([allow, allow, allow],dim=2)
         allow = torch.cat([allow, allow, allow],dim=3).reshape(BATCH_SIZE,-1,3,3,1,height, width)
-        mask_flow = (utils.agg(allow).reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        return mask_flow
+        y_flow = utils.agg(allow)
+        y_flow = (1.-torch.max(n_flow,dim=2,keepdim=True).values)*y_flow
+        
+        n_flow = (n_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        y_flow = (y_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        
+        return n_flow.detach(), y_flow.detach()
     
-    def prepare_flows_for_coord(self, allow, tgt_repr):
-        allow = (allow>=0).float()
-            
-        BATCH_SIZE, height, width, w_zoom, h_zoom = allow.shape[0], allow.shape[-2], allow.shape[-1], tgt_repr.shape[-1], tgt_repr.shape[-2]
+    def prepare_flows_for_coord(self, allow, target_repr):
+        allow = (allow==1.).float()
+        BATCH_SIZE, height, width, w_zoom, h_zoom = allow.shape[0], allow.shape[-2], allow.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
         
         allow = torch.cat([allow, allow, allow],dim=2)
         allow = torch.cat([allow, allow, allow],dim=3).reshape(BATCH_SIZE,-1,3,3,1,height, width)
         coord_flow = (utils.agg(allow).reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        return coord_flow*tgt_repr.reshape(-1,1,h_zoom, w_zoom)
+        return coord_flow.detach()*target_repr.reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
     
     def calculate_weights(self, new_x_z_mask_value, original_size=None):
         BATCH_SIZE, height, width = new_x_z_mask_value.shape[0], new_x_z_mask_value.shape[-2], new_x_z_mask_value.shape[-1]
         
-        ind = utils.agg((new_x_z_mask_value[:,:,:,:,-2:-1,:,:]).detach(), factor=1e7)
-        ind = torch.min(ind,dim=2,keepdim=True).indices
-        ind = torch.where(torch.sum(utils.agg(new_x_z_mask_value[:,:,:,:,-1:,:,:], factor=0.),dim=2,keepdim=True)>.5, ind, 0*ind+4)
+        ind = utils.agg((new_x_z_mask_value[:,:,:,:,-2:-1,:,:]).detach(), factor=specials.INF)
+        val, ind = torch.min(ind,dim=2,keepdim=True)
+        ind = torch.where((val>0.)&(val<specials.INF), ind, 0*ind+4)
         ind = F.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,1,1,height, width,3*3).permute(0,1,6,2,3,4,5).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
         ind = (ind>.5)
         weights = utils.agg(new_x_z_mask_value, ind=ind).reshape(-1,4,height, width)
@@ -127,6 +158,7 @@ class SMap(nn.Module):
         
         pre_key_query = self.smap3x3.calculate_key_query(pre_x, pre_y, pre_z, panels, original_size)
         pre_mask = pre_mask.reshape(BATCH_SIZE,-1,1,1,1,height, width)
+        
         weights_b = (new_x_z_mask_value[:,:,:,:,-1:,:,:]).detach()
         
         
@@ -137,35 +169,32 @@ class SMap(nn.Module):
         target_2Dr = torch.max(target.reshape(BATCH_SIZE,-1,1,1,h_zoom, w_zoom),dim=1,keepdim=True).values
         
         key_query_grdf = -(pre_key_query-pre_key_query.detach())
-        new_r_mask = (1.*pre_mask)
 
-        weights = weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width).detach()
-        weights = weights.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
+        weights = (new_x_z_mask_value[:,:,:,:,-1:,:,:]).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         weights = utils.agg(weights).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         key_query_grdf = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+key_query_grdf.reshape(BATCH_SIZE,C_zoom,3*3,height, width)
         key_query_grdf = key_query_grdf.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         key_query_grdf = utils.agg(key_query_grdf).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
-        new_r_mask = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+new_r_mask.reshape(BATCH_SIZE,C_zoom,1,height, width)
-        new_r_mask = new_r_mask.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
-        new_r_mask = utils.agg(new_r_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
+        pre_mask = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+pre_mask.reshape(BATCH_SIZE,C_zoom,1,height, width)
+        pre_mask = pre_mask.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
+        pre_mask = utils.agg(pre_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
 
 
-        allow = self.compute_allow_matrix(weights_b.detach().reshape(BATCH_SIZE,-1,3,3,1,height, width), target_2Dr)
-        mask_flow = 1.-(self.prepare_flows_for_mask(allow, target_2Dr)==0.).float()
-        coord_flow = self.prepare_flows_for_coord(allow, target_2Dr)
-        target_2Dr = target_2Dr.reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        allow = self.compute_allow_matrix((weights_b>specials.OFF_THRESH).float().detach().reshape(BATCH_SIZE,-1,3,3,1,height, width), target_2Dr)
         
         weights = (weights.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        coord_flow = self.prepare_flows_for_coord(allow, target_2Dr)
+        n_flow, y_flow = self.prepare_flows_for_mask(allow, weights_b, target_2Dr)
+        target_2Dr = target_2Dr.reshape(BATCH_SIZE,1,h_zoom, w_zoom)
+        
         key_query_grdf = (key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        new_r_mask = (new_r_mask.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        new_r_mask_grdf = new_r_mask-new_r_mask.detach()
-
-        case = ((new_r_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()
-        n_case = (1.-mask_flow.detach())*(weights>specials.OFF_THRESH).float() # ((new_r_mask>specials.OFF_THRESH).float()==target_2Dr).float()
-        factor = torch.where(new_r_mask_grdf>specials.OFF_THRESH, 1e-1*(1.-case), (1.-case))
-        case = (1.-torch.max(n_case,dim=1,keepdim=True).values)*mask_flow.detach()*(1.-case)
-        weights_grdf = (case*factor+n_case).detach()*new_r_mask_grdf + coord_flow.detach()*key_query_grdf
-
+        pre_mask = (pre_mask.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        y_flow = y_flow*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float())
+        pre_mask_grdf = pre_mask-pre_mask.detach()
+        weights_grdf = weights-weights.detach()
+        
+        weights = weights - (1.-(weights>specials.OFF_THRESH).float().detach())*(.5*pre_mask+weights)
+        weights_grdf = -1e-1*self.bot(pre_mask_grdf)*y_flow.detach() + (2.*(weights>0.).float().detach()-1.)*key_query_grdf*coord_flow.detach() + (weights_grdf)*n_flow.detach()
         weights = weights.detach() + weights_grdf # apply attractive rectification for this implementation
         #######################
         
@@ -218,6 +247,9 @@ class SMap(nn.Module):
             h_out, w_out = x.size(-2), x.size(-1)
         
         if target is not None:
-            return self.rectificate_flow(x, pre_x, pre_y, pre_z, pre_mask, panels, target, (height_zoom, width_zoom))
+            
+            weights = self.rectificate_flow(x, pre_x, pre_y, pre_z, pre_mask, panels, target, (height_zoom, width_zoom))
+            weights = (weights)
+            return weights
         
         return x

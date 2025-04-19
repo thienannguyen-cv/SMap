@@ -119,12 +119,12 @@ def add_pad(x_value, y_value, z_value, r_mask, original_size):
     
     return x_value, y_value, z_value, r_mask, panels
 
-def recover_size(x, n, zoom):
+def recover_size(x, n, zoom=0):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()
     C_zoom = C_zoom//(3*3)
     C_zoom_2 = int(np.sqrt(C_zoom))
     x = (1.*x).reshape(BATCH_SIZE,-1,3*3,h_out, w_out)
-    for i in range(zoom):
+    for i in range(n-zoom,n):
         C_zoom = C_zoom//4
         C_zoom_2 = C_zoom_2//2
         h_out = h_out*2

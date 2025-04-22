@@ -118,14 +118,15 @@ class SMap(nn.Module):
         n_flow = (allow==0.).float()*(weights_b>specials.OFF_THRESH).float().reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
         n_flow = utils.agg(n_flow.reshape(BATCH_SIZE,-1,3,3,1,height, width))
         
-        allow = (1.-(allow==0.).float())
+        allow = torch.where(allow>0., allow, 3*torch.abs(allow)).float()
         allow = torch.cat([allow, allow, allow],dim=2)
         allow = torch.cat([allow, allow, allow],dim=3).reshape(BATCH_SIZE,-1,3,3,1,height, width)
         y_flow = utils.agg(allow)
-        y_flow = (1.-torch.max(n_flow,dim=2,keepdim=True).values)*y_flow
         
         n_flow = (n_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         y_flow = (y_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        y_flow = torch.where((y_flow*target_repr.reshape(BATCH_SIZE,-1,h_zoom, w_zoom))>=3., -1e1+0.*y_flow, torch.where(y_flow>=3.,1.+0.*y_flow,y_flow))
+        y_flow = (1.-torch.max(n_flow,dim=2,keepdim=True).values)*y_flow
         
         return n_flow.detach(), y_flow.detach()
     
@@ -194,7 +195,7 @@ class SMap(nn.Module):
         weights_grdf = weights-weights.detach()
         
         weights = weights - (1.-(weights>specials.OFF_THRESH).float().detach())*(.5*pre_mask+weights)
-        weights_grdf = -1e-1*self.bot(pre_mask_grdf)*y_flow.detach() + (2.*(weights>0.).float().detach()-1.)*key_query_grdf*coord_flow.detach() + (weights_grdf)*n_flow.detach()
+        weights_grdf = -1e-1*(pre_mask_grdf)*y_flow.detach() + 1e-1*(2.*(weights>0.).float().detach()-1.)*key_query_grdf*coord_flow.detach() + (weights_grdf)*n_flow.detach()
         weights = weights.detach() + weights_grdf # apply attractive rectification for this implementation
         #######################
         

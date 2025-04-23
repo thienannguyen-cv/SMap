@@ -85,11 +85,10 @@ class SMap(nn.Module):
             def hook(module, grad_input, grad_output):
                 print("in.shape")
                 print(grad_output[0].shape)
-                ofs = 2
-                print((grad_output[0])[1:ofs,:,:,:].min())
-                print((grad_output[0])[1:ofs,:,:,:].max())
-                grad_out = torch.sum((grad_output[0])[1:ofs,:,:,:],dim=1,keepdim=False)
-                print(grad_out)
+                ofs = 1
+                print((grad_output[0])[:ofs,4:5,:,:].min())
+                print((grad_output[0])[:ofs,4:5,:,:].max())
+                grad_out = torch.sum((grad_output[0])[:ofs,4:5,:,:],dim=1,keepdim=False)
                 plt.figure(figsize=(8,8))
                 plt.imshow((grad_out.permute(1,2,0).detach().cpu().numpy()[:,:,-1]).squeeze())
                 plt.show()
@@ -115,18 +114,18 @@ class SMap(nn.Module):
         
         target_repr = target_repr.long().reshape(BATCH_SIZE,-1,1,h_zoom, w_zoom)
         
-        n_flow = (allow==0.).float()*(weights_b>specials.OFF_THRESH).float().reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
-        n_flow = utils.agg(n_flow.reshape(BATCH_SIZE,-1,3,3,1,height, width))
+        n_flow = (allow==0.).float().reshape(BATCH_SIZE,-1,1,1,1,height, width)+0.*weights_b.reshape(BATCH_SIZE,-1,3,3,1,height, width)
+        n_flow = utils.agg(n_flow)*(weights_b>specials.OFF_THRESH).float().reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
         
         allow = torch.where(allow>0., allow, 3*torch.abs(allow)).float()
         allow = torch.cat([allow, allow, allow],dim=2)
         allow = torch.cat([allow, allow, allow],dim=3).reshape(BATCH_SIZE,-1,3,3,1,height, width)
         y_flow = utils.agg(allow)
+        y_flow = torch.where(y_flow==3.,1.+0.*y_flow,y_flow)
+        y_flow = (1.-torch.max(n_flow,dim=2,keepdim=True).values)*y_flow
         
         n_flow = (n_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         y_flow = (y_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        y_flow = torch.where((y_flow*target_repr.reshape(BATCH_SIZE,-1,h_zoom, w_zoom))>=3., -1e1+0.*y_flow, torch.where(y_flow>=3.,1.+0.*y_flow,y_flow))
-        y_flow = (1.-torch.max(n_flow,dim=2,keepdim=True).values)*y_flow
         
         return n_flow.detach(), y_flow.detach()
     
@@ -190,12 +189,14 @@ class SMap(nn.Module):
         
         key_query_grdf = (key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         pre_mask = (pre_mask.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        y_flow = y_flow*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float())
         pre_mask_grdf = pre_mask-pre_mask.detach()
         weights_grdf = weights-weights.detach()
         
-        weights = weights - (1.-(weights>specials.OFF_THRESH).float().detach())*(.5*pre_mask+weights)
-        weights_grdf = -1e-1*(pre_mask_grdf)*y_flow.detach() + 1e-1*(2.*(weights>0.).float().detach()-1.)*key_query_grdf*coord_flow.detach() + (weights_grdf)*n_flow.detach()
+        
+        y_flow = (y_flow.reshape(BATCH_SIZE,-1,3*3,h_zoom, w_zoom)*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()).reshape(BATCH_SIZE,-1,3*3,h_zoom, w_zoom)).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
+        weights = n_flow*weights -(1.-n_flow)*weights -(1.-(weights>specials.OFF_THRESH).float().detach())*(.5*pre_mask+weights)
+        weights_grdf = -1e-1*pre_mask_grdf*y_flow.detach() + 1e-1*(2.*(weights>0.).float().detach()-1.)*key_query_grdf*coord_flow.detach() + (weights_grdf)*n_flow.detach()
+        
         weights = weights.detach() + weights_grdf # apply attractive rectification for this implementation
         #######################
         
@@ -248,9 +249,7 @@ class SMap(nn.Module):
             h_out, w_out = x.size(-2), x.size(-1)
         
         if target is not None:
-            
             weights = self.rectificate_flow(x, pre_x, pre_y, pre_z, pre_mask, panels, target, (height_zoom, width_zoom))
-            weights = (weights)
             return weights
         
         return x

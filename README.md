@@ -2,101 +2,148 @@
 <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300">
 </h1><br>
 
------------------
+# SMap: Spatial Mapping for Dynamic 3D Inference
 
-# Spatial Mapping (SMap)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![PyPI version](https://badge.fury.io/py/smap-torch.svg)](https://badge.fury.io/py/smap-torch)
+![Coverage](https://thienannguyen-cv.github.io/SMap/coverage.svg)
+[![CI - Test](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml/badge.svg)](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml)
 
-| | |
-| --- | --- |
-| Testing | [![CI - Test](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml/badge.svg)](https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml)|
-| Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/smap-torch.svg)](https://pypi.org/project/smap-torch/) ![Coverage](https://thienannguyen-cv.github.io/SMap/coverage.svg)|
+SMap (Spatial Mapping) is an open-source PyTorch library for spatial mapping based on 2D representations. It serves as the foundation for the **"Dynamic 3D Inference"** vision, which explores a fundamental question:
 
-## What is it?
-An open source pytorch library for spatial mapping based on 2D representations, a concept in 3D inference that first appeared in the paper ["A Solution to the Fundamental Problem of 3D Inference Based on 2D Representations"](https://arxiv.org/abs/2211.04691) uploaded to arXiv. This project is the foundation of the "Dynamic 3D Inference" vision with three main pillars: 
- - Dynamic gradient flows. 
- - Platonic-representation based 3D inference. 
- - Countable vision. 
+> *"How to infer 3D properties of objects by moving their projection on a 2D view to a target projection?"*
 
-**Dynamic gradient flows**: A concept appears in backprobagation programming for neural network optimization when considering the differentiable rendering problem as a multi-objective optimization problem where each point corresponds to an objective. Thus, for each objective, the gradient flow will be controlled in a way that helps to translate an existing point to its corresponding screen position instead of “bubbling" a point at a certain screen position, what is a common process found in solutions based on image loss optimization. 
-For more details, please read the [paper](https://arxiv.org/abs/2211.04691). 
+This project introduces a novel, explainable approach to 3D inference, detailed in the paper ["A Solution for the Fundamental Problem of 3D Inference based on 2D Representations"](https://arxiv.org/abs/2211.04691).
 
-**Platonic-representation based 3D inference**: The projection of an object on an image is an 2D instance of the Platonic representation of that object. This project aims to perform 3D inference on these Platonic representations built during the training process. Unlike other approaches, the inverse rendering solution implemented in this project does not separate the 3D inference process from the training process but rather the training process is built on top of the inference. Accordingly, even if the target images are changed by a change in the 3D parameters such as increasing or decreasing the rotation angles of the object or translating the entire object, the training process will not have to restart from the beginning but will be similar to moving the object to the new position. 
-
-**Countable vision**: This concept will be revealed in the second phase of the project. 
-
-*Current Plans*: [Trello board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management)
+---
 
 ## Table of Contents
 
+- [The Vision: Dynamic 3D Inference](#the-vision-dynamic-3d-inference)
+  - [Dynamic Gradient Flows](#dynamic-gradient-flows)
+  - [Platonic-representation based 3D inference](#platonic-representation-based-3d-inference)
+  - [Countable Vision](#countable-vision)
+- [Scientific Foundation](#scientific-foundation)
 - [Installation](#installation)
-- [Integrated Applications](#integrated-applications)
-- [Next Release Features](#next-release-features)
+- [Quick Start](#quick-start)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Citation](#citation)
 - [License](#license)
+
+## The Vision: Dynamic 3D Inference
+
+This project is built upon three main pillars:
+
+### Dynamic Gradient Flows
+This concept rethinks backpropagation for differentiable rendering. Instead of optimizing an image-based loss which often "bubbles" a new point into existence, this method controls the gradient flow to physically **translate an existing point** to its corresponding target position on the screen. It treats the problem as a multi-objective optimization where each point is an objective, leading to a more stable and meaningful optimization process.
+
+### Platonic-representation based 3D inference
+The projection of an object onto an image is a 2D instance of that object's ideal "Platonic representation". This project performs 3D inference directly on these representations built during training. Unlike other approaches, our inverse rendering solution integrates the 3D inference process into the training loop.
+
+Consequently, if the target view changes due to a shift in 3D parameters (e.g., rotation or translation), the process doesn't restart from scratch. Instead, it efficiently adapts by "moving" the object to its new configuration.
+
+### Countable Vision
+This concept will be revealed in the second phase of the project.
+
+## Scientific Foundation
+
+The core ideas are formally presented in our research paper. We introduce a generalization of the Blind PnP problem and provide a gradient-descent-based solution. The experiments are designed as illustrations of the theory rather than competitive benchmarks.
+
+> 📄 **Read the full paper on arXiv: [https://arxiv.org/abs/2211.04691](https://arxiv.org/abs/2211.04691)**
+
+## Applications & Demos
+
+* **Camera Calibration:** Camera calibration as a **[Perspective-n-Image](https://medium.com/@thienan092/from-pni-camera-calibration-to-monocular-3d-scene-reconstruction-part-i-what-is-c80879815e55)** solver. 
+  - You can explore the implementation, which uses the **[Sky-dataset](https://github.com/thienannguyen-cv/Sky-dataset)**, in the [Jupyter Notebook](https://github.com/thienannguyen-cv/SMap/blob/main/applications/Camera%20Calibration/camera-calibration.ipynb).
+  - For a quick look at the application, see the interactive demo below.
+
+  [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=github)](https://thienannguyen-cv.github.io/cab-viz/)
 
 ## Installation
 
 ### Install from PyPI
-
-You can install **smap** directly from PyPI using pip:
-
+The recommended way to install `smap-torch` is from PyPI:
 ```bash
 pip install smap-torch
 ```
 
 ### Development Installation
+To set up SMap for development:
+```bash
+# 1. Clone the repository
+git clone https://github.com/thienannguyen-cv/SMap.git
+cd SMap
 
-Follow these steps to install and set up SMap for development:
+# 2. (Optional) Create and activate a virtual environment
+# On Linux or macOS:
+python -m venv venv && source venv/bin/activate
+# On Windows:
+python -m venv venv && venv\Scripts\activate
 
-1. **Clone the repository:**
+# 3. Install dependencies
+pip install --upgrade pip setuptools
+pip install -r requirements.txt
 
-   ```bash
-   git clone https://github.com/thienannguyen-cv/SMap.git
-   cd SMap
-   ```
-
-2. **(Optional) Create and activate a virtual environment:**
-
-   ```bash
-   # On Linux or macOS:
-   python -m venv venv
-   source venv/bin/activate
-
-   # On Windows:
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-
-   Upgrade pip and setuptools, then install all required packages:
-
-   ```bash
-   pip install --upgrade pip setuptools
-   pip install -r requirements.txt
-   ```
-
-4. **Install SMap in editable mode:**
-
-   This allows you to develop SMap and have changes reflected immediately without reinstalling the package:
-
-   ```bash
-   pip install -e .
-   ```
-
-After installation, you can import the package in your python project, for example:
-
-```python
-from smap import SMap, SMap3x3
+# 4. Install SMap in editable mode
+pip install -e .
 ```
 
-## Integrated Applications
-- Camera Calibration as a PnI solver. 
+## Quick Start
 
-## Next Release Features
-- Depth Estimation for unique-shape objects. 
+Here is a simple example of how to use the library. After installation, you can import and use the `SMap` classes in your Python project:
+
+```python
+import numpy
+import torch
+from smap import SMap, SMap3x3
+
+# Assume you have an input tensor (e.g., a binary mask)
+# Shape: (N, C, H, W)
+N, C, H, W = [1, 4, 128, 256]
+input_tensor = torch.randn(N, C, H, W)
+
+# Initialize SMap
+# Define an affine transformation for the camera
+camera = numpy.array([[2304.5479, 0,  1686.2379], 
+                      [0, 2305.8757, -0.0151],
+                      [0, 0, 1.]], dtype=numpy.float32)
+
+smap_model = SMap(H, W, camera, "cpu")
+
+# Pass the tensor through the model to get the mapping result
+output = smap_model(input_tensor)
+
+# The output contains the result of the spatial mapping
+print("Output shape:", output.shape)
+```
+
+## Roadmap
+
+The next release will focus on:
+* **Depth Estimation:** Implementing depth estimation for single-shape objects.
+
+For more detailed plans, you can check our [Trello Board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management).
+
+## Contributing
+
+Contributions are welcome! If you have suggestions or want to contribute code, please open an issue to discuss your ideas or submit a pull request.
+
+## Citation
+
+If you use SMap or its underlying concepts in your research, please cite our paper:
+```bibtex
+@article{nguyen2022solution,
+  title={A Solution for a Fundamental Problem of 3D Inference based on 2D Representations},
+  author={Nguyen, Thien An L},
+  journal={arXiv preprint arXiv:2211.04691},
+  year={2022}
+}
+```
 
 ## License
-[Apache 2.0](LICENSE)
+
+This project is licensed under the **Apache 2.0 License**. See the [LICENSE](LICENSE) file for more details.
 
 <hr>
 

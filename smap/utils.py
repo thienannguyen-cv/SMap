@@ -3,6 +3,13 @@ import torch
 import torch.nn.functional as F
 from smap import specials
 
+DEBUG_FLAG = False
+
+def flip(x, dim):
+    dim = x.dim() + dim if dim < 0 else dim
+    return x[tuple(slice(None, None) if i != dim
+             else torch.arange(x.size(i)-1, -1, -1).long()
+             for i in range(x.dim()))]
 
 def to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix_inv, device):
     y_im, x_im = panels
@@ -28,7 +35,7 @@ def agg(x, ind=None, factor=None):
     fct = 0.
     if factor is not None:
         fct = factor
-    x = x + ((x!=0.).float()-1.)*(-fct)
+    x = x + (x==0.).float()*fct
     
     sizes = list(x.size())
     sizes[2] = 3
@@ -119,6 +126,32 @@ def add_pad(x_value, y_value, z_value, r_mask, original_size):
     
     return x_value, y_value, z_value, r_mask, panels
 
+
+        
+def calculate_key_query(x_value, y_value, z_value, panels, window_size, original_size, camera_matrix_inv, device="cpu"):
+    shapes = x_value.size()
+    BATCH_SIZE, C_zoom, height, width = shapes[0], shapes[1], shapes[-2], shapes[-1]
+    C_zoom_2 = int(np.sqrt(C_zoom))
+    zoom = int(np.log2(C_zoom_2))
+
+    grouped_key_x = x_value.reshape(BATCH_SIZE,-1,1,1,height*width)
+    grouped_key_y = y_value.reshape(BATCH_SIZE,-1,1,1,height*width)
+    #######################
+
+
+    # 3. Prepare spatial placeholders for recifying gradients
+    updated_key_z = to_3d3x3(z_value.reshape(BATCH_SIZE,-1,height, width), height, width, panels, original_size, window_size, camera_matrix_inv, device).permute(0,1,3,2).contiguous().reshape(BATCH_SIZE,-1,3,3*3,height*width)
+
+    query_x = (updated_key_z[:,:,:1,:,:]).detach()
+    query_y = (updated_key_z[:,:,1:2,:,:]).detach()
+
+    diff_x = torch.sign(grouped_key_x-query_x).detach()*(grouped_key_x-query_x)
+    diff_y = torch.sign(grouped_key_y-query_y).detach()*(grouped_key_y-query_y)
+    key_query = torch.sum(diff_x+diff_y,dim=2)
+    #######################
+
+    return key_query.reshape(BATCH_SIZE,-1,3*3,height, width)
+
 def recover_size(x, n, zoom=0):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()
     C_zoom_2 = int(np.sqrt(C_zoom))
@@ -128,7 +161,7 @@ def recover_size(x, n, zoom=0):
         C_zoom_2 = C_zoom_2//2
         h_out = h_out*2
         w_out = w_out*2
-        x = x.reshape(BATCH_SIZE,2,C_zoom_2,2,C_zoom_2,-1,h_out//2, w_out//2).permute(0,2,4,5,6,1,7,3).reshape(BATCH_SIZE,C_zoom,-1,h_out, w_out)
+        x = x.reshape(BATCH_SIZE,C_zoom_2,2,C_zoom_2,2,-1,h_out//2, w_out//2).permute(0,1,3,5,6,2,7,4).reshape(BATCH_SIZE,C_zoom,-1,h_out, w_out)
     return x
 
 def save_for_vtest(path,activation_gradients, gradient_flows, input_representation, target_representation):

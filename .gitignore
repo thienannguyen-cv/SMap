@@ -23,3 +23,7 @@ coverage.svg
 /applications/Depth Estimation/Lamp-dataset/Lamp303
 /applications/Depth Estimation/.ipynb_checkpoints
 /applications/Camera Calibration/Lamp-dataset
+*.npy
+*.png
+/docs/test case/TOUCHME_files
+/docs/smap/SMAP_KNOWLEDGE_GRAPH_files

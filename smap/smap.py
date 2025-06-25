@@ -63,25 +63,6 @@ class SMap(nn.Module):
         self.rectify_module = rectify.DefaultRectify(self.smap3x3)
         if rectify_type==rectify.types.CAM:
             self.rectify_module = rectify.CAMRectify(self.smap3x3)
-        from tools.testing.vtest.vtest_types import NoneBot, TestBot_In_3_3, TestBot_Out_3_3, TestBot_Input_3_3, TestBot_Target, TestCase
-        def get_activation_grad():
-            import matplotlib.pyplot as plt
-            def hook(module, grad_input, grad_output):
-                print("in.shape")
-                print(grad_output[0].shape)
-                ofs = 2
-                print((grad_output[0])[1:ofs,:,:,:].min())
-                print((grad_output[0])[1:ofs,:,:,:].max())
-                grad_out = torch.sum((grad_output[0])[1:ofs,:,:,:],dim=1,keepdim=False)
-                print(grad_out)
-                plt.figure(figsize=(8,8))
-                plt.imshow((grad_out.permute(1,2,0).detach().cpu().numpy()[:,:,-1]).squeeze())
-                plt.show()
-            return hook
-
-        self.bot = NoneBot()
-        self.bot.register_backward_hook(get_activation_grad())
-        self.vtestcase = TestCase(name=f"SMap_{n}", testbot_in=TestBot_In_3_3(), testbot_out=TestBot_Out_3_3(), testbot_input=TestBot_Input_3_3(), testbot_target=TestBot_Target(), out_path="./")
     
     def calculate_weights(self, new_x_z_mask_value, original_size=None):
         BATCH_SIZE, height, width = new_x_z_mask_value.shape[0], new_x_z_mask_value.shape[-2], new_x_z_mask_value.shape[-1]
@@ -140,14 +121,12 @@ class SMap(nn.Module):
         # >>> torch.Size([16, 256, 4, 8, 16])
         x = x.reshape(x.size(0),-1,x.size(-3),x.size(-2),x.size(-1))
         pre_x, pre_y, pre_z, pre_mask, panels, x = self.smap3x3.go(x, (height_zoom, width_zoom))
-        pre_mask = (pre_mask)
         h_out, w_out = x.size(-2), x.size(-1)
         
         
         if target is not None:
             
             weights = self.rectify_module.rectificate_flow(x, pre_x, pre_y, pre_z, pre_mask, panels, target_2Dr, (height_zoom, width_zoom))
-            weights = (weights)
             return weights
         
         return self.calculate_weights(x, (height_zoom, width_zoom))

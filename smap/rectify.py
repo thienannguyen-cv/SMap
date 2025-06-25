@@ -108,10 +108,7 @@ class CAMRectify(DefaultRectify):
     def __init__(self, smap3x3):
         super(CAMRectify, self).__init__(smap3x3)
         self.smap3x3 = smap3x3
-        
-        from tools.testing.vtest.vtest_types import TestBot_In_3_3, TestBot_Out_3_3, TestBot_Input_3_3, TestBot_Target, TestCase
-        self.vtestcase = TestCase(name=f"Rectify_testcase", testbot_in=TestBot_In_3_3(), testbot_out=TestBot_Out_3_3(), testbot_input=TestBot_Input_3_3(), testbot_target=TestBot_Target(), out_path="./")
-        
+    
     def rectificate_flow(self, new_x_z_mask_value, pre_x, pre_y, pre_z, pre_mask, panels, target, original_size):
         BATCH_SIZE, height, width = new_x_z_mask_value.shape[0], new_x_z_mask_value.shape[-2], new_x_z_mask_value.shape[-1]
         
@@ -130,16 +127,11 @@ class CAMRectify(DefaultRectify):
         # 7. Triggering gradient at the origins of the image rectification
         shapes = target.size()
         BATCH_SIZE, C_zoom, h_zoom, w_zoom = shapes[0], shapes[1], shapes[-2], shapes[-1]
-        # testing/target
-        self.vtestcase.orig_shape = (h_zoom, w_zoom)
-        self.vtestcase.testbot_target(target.reshape(BATCH_SIZE, C_zoom, h_zoom, w_zoom))
         
         target_2Dr = torch.max(target.reshape(BATCH_SIZE,-1,1,1,h_zoom, w_zoom),dim=1,keepdim=True).values
         
         pre_weights = (new_x_z_mask_value[:,:,:,:,-1:,:,:]).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pre_weights = utils.agg(pre_weights).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
-        # testing/in
-        pre_key_query = self.vtestcase.testbot_in(pre_key_query.reshape(BATCH_SIZE,C_zoom*3*3,height, width))
         pre_key_query = pre_key_query.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pre_key_query = utils.agg(pre_key_query).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pre_mask = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+pre_mask.reshape(BATCH_SIZE,C_zoom,1,height, width)
@@ -163,8 +155,6 @@ class CAMRectify(DefaultRectify):
         key_query_grdf = (pre_key_query.detach()-pre_key_query)
         pre_mask_grdf = pre_mask-pre_mask.detach()
         
-        # testing/out
-        key_query_grdf = self.vtestcase.testbot_out(key_query_grdf)
         
         weights = pre_weights - (1.-(pre_weights>specials.OFF_THRESH).float().detach())*(.5*pre_mask+pre_weights)
         
@@ -174,8 +164,6 @@ class CAMRectify(DefaultRectify):
         
         weights = self(weights, weights_grdf, key_query_grdf, pre_mask_grdf) # apply attractive rectification for this implementation
         #######################
-        # testing/input
-        self.vtestcase.testbot_input(weights)
         
         return weights
         

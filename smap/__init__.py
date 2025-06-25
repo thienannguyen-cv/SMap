@@ -3,4 +3,4 @@ from .specials import *
 from .utils import *
 
 __version__ = "1.0.3"
-__all__ = ["SMap", "SMap3x3", "specials", "utils"]
+__all__ = ["SMap", "SMap3x3", "specials", "utils", "rectify"]

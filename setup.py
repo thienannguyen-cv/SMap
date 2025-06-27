@@ -37,5 +37,5 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6.7",
+    python_requires=">=3.9",
 )

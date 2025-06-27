@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.8" ]
+        python-version: [ "3.9" ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -64,16 +64,16 @@ jobs:
       - name: Install pandoc
         run: sudo apt-get install pandoc
 
-      # Chỉ chạy bước deploy cho python-version 3.8 để tránh việc deploy nhiều lần
+      # Chỉ chạy bước deploy cho python-version 3.9 để tránh việc deploy nhiều lần
       - name: Prepare README for GitHub Pages
-        if: ${{ matrix.python-version == '3.8' }}
+        if: ${{ matrix.python-version == '3.9' }}
         run: |
           mkdir -p gh-pages-folder
           pandoc README.md -o gh-pages-folder/index.html  # Chuyển README.md thành index.html
           cp coverage.svg gh-pages-folder/coverage.svg
 
       - name: Deploy to GitHub Pages
-        if: ${{ matrix.python-version == '3.8' }}
+        if: ${{ matrix.python-version == '3.9' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

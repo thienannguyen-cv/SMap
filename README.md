@@ -60,7 +60,68 @@ The core ideas are formally presented in our research paper. We introduce a gene
 
   [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=github)](https://thienannguyen-cv.github.io/cab-viz/)
 
-## Installation
+## Setup & Installation
+
+### Setup environment with Conda
+Follow these steps to set up a complete development environment for SMap. This is the recommended approach for both using and contributing to the library.
+
+#### 1. Prerequisites
+
+* **Conda:** Ensure you have Anaconda or Miniconda installed.
+* **(GPU) NVIDIA Driver:** If you want to use a GPU (highly recommended), make sure you have the latest NVIDIA driver that supports **CUDA 11.8 or newer**.
+  * Visit the [NVIDIA Driver Downloads](https://www.nvidia.com/Download/index.aspx) page to update.
+  * After installing and rebooting, open a Command Prompt and run `nvidia-smi` to check the supported CUDA version.
+
+#### 2. Create the Conda Environment
+
+1.  **Use the `environment.yml` file:**
+    This project includes an `environment.yml` file with a reliable configuration to ensure PyTorch is installed correctly with CUDA support.
+
+2.  **Create the environment:**
+    Open **Anaconda Prompt** (not Git Bash or a standard cmd), navigate to the project's root directory, and run the following command:
+
+    ```bash
+    conda env create -f environment.yml
+    ```
+    > **Note:** If an environment with the same name (`smap_env`) already exists, it's best to remove it first with `conda env remove -n smap_env` before running the `create` command. This ensures a clean installation.
+
+3.  **Activate the environment:**
+    Once the installation is complete, activate the new environment:
+    ```bash
+    conda activate smap_env
+    ```
+    You will see the environment name `(smap_env)` at the beginning of your command prompt line.
+
+#### 3. Verify the Installation
+
+To ensure PyTorch was installed correctly with GPU support, you can run the following Python script.
+
+```python
+import torch
+
+# Check PyTorch version
+print(f"PyTorch version: {torch.__version__}")
+
+# Check if CUDA is available
+print(f"Is CUDA available: {torch.cuda.is_available()}")
+
+# If CUDA is available, display details
+if torch.cuda.is_available():
+    print(f"CUDA version PyTorch was compiled with: {torch.version.cuda}")
+    print(f"cuDNN version: {torch.backends.cudnn.version()}")
+    print(f"Number of GPUs: {torch.cuda.device_count()}")
+    print(f"Current GPU name: {torch.cuda.get_device_name(0)}")
+else:
+    print("PyTorch is running on CPU. Please check your NVIDIA driver and CUDA installation.")
+```
+
+Run this script from your Anaconda Prompt (with the `smap_env` environment activated). The expected output for a successful GPU setup is:
+```
+PyTorch version: 2.0.1
+Is CUDA available: True
+CUDA version PyTorch was compiled with: 11.8
+...
+```
 
 ### Install from PyPI
 The recommended way to install `smap-torch` is from PyPI:

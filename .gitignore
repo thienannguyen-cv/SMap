@@ -27,3 +27,7 @@ coverage.svg
 *.png
 /docs/test case/TOUCHME_files
 /docs/smap/SMAP_KNOWLEDGE_GRAPH_files
+docs/smap/SMAP_KNOWLEDGE_GRAPH.html
+docs/test case/TOUCHME.html
+.vscode/settings.json
+.ipynb_checkpoints/README-checkpoint.md

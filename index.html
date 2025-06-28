@@ -2,120 +2,248 @@
 <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300">
 </h1>
 <p><br></p>
-<hr />
-<h1 id="spatial-mapping-smap">Spatial Mapping (SMap)</h1>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td>Testing</td>
-<td><a
+<h1 id="smap-spatial-mapping-for-dynamic-3d-inference">SMap: Spatial
+Mapping for Dynamic 3D Inference</h1>
+<p><a href="https://opensource.org/licenses/Apache-2.0"><img
+src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"
+alt="License: Apache 2.0" /></a> <a
+href="https://badge.fury.io/py/smap-torch"><img
+src="https://badge.fury.io/py/smap-torch.svg" alt="PyPI version" /></a>
+<img src="https://thienannguyen-cv.github.io/SMap/coverage.svg"
+alt="Coverage" /> <a
 href="https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml"><img
 src="https://github.com/thienannguyen-cv/SMap/actions/workflows/ci.yml/badge.svg"
-alt="CI - Test" /></a></td>
-</tr>
-<tr class="even">
-<td>Package</td>
-<td><a href="https://pypi.org/project/smap-torch/"><img
-src="https://img.shields.io/pypi/v/smap-torch.svg"
-alt="PyPI Latest Release" /></a> <img
-src="https://thienannguyen-cv.github.io/SMap/coverage.svg"
-alt="Coverage" /></td>
-</tr>
-</tbody>
-</table>
-<h2 id="what-is-it">What is it?</h2>
-<p>An open source pytorch library for spatial mapping based on 2D
-representations, a concept in 3D inference that first appeared in the
-paper <a href="https://arxiv.org/abs/2211.04691">“A Solution to the
-Fundamental Problem of 3D Inference Based on 2D Representations”</a>
-uploaded to arXiv. This project is the foundation of the “Dynamic 3D
-Inference” vision with three main pillars: - Dynamic gradient flows. -
-Platonic-representation based 3D inference. - Countable vision.</p>
-<p><strong>Dynamic gradient flows</strong>: A concept appears in
-backprobagation programming for neural network optimization when
-considering the differentiable rendering problem as a multi-objective
-optimization problem where each point corresponds to an objective. Thus,
-for each objective, the gradient flow will be controlled in a way that
-helps to translate an existing point to its corresponding screen
-position instead of “bubbling” a point at a certain screen position,
-what is a common process found in solutions based on image loss
-optimization. For more details, please read the <a
-href="https://arxiv.org/abs/2211.04691">paper</a>.</p>
-<p><strong>Platonic-representation based 3D inference</strong>: The
-projection of an object on an image is an 2D instance of the Platonic
-representation of that object. This project aims to perform 3D inference
-on these Platonic representations built during the training process.
-Unlike other approaches, the inverse rendering solution implemented in
-this project does not separate the 3D inference process from the
-training process but rather the training process is built on top of the
-inference. Accordingly, even if the target images are changed by a
-change in the 3D parameters such as increasing or decreasing the
-rotation angles of the object or translating the entire object, the
-training process will not have to restart from the beginning but will be
-similar to moving the object to the new position.</p>
-<p><strong>Countable vision</strong>: This concept will be revealed in
-the second phase of the project.</p>
-<p><em>Current Plans</em>: <a
-href="https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management">Trello
-board</a></p>
+alt="CI - Test" /></a></p>
+<p>SMap (Spatial Mapping) is an open-source PyTorch library for spatial
+mapping based on 2D representations. It serves as the foundation for the
+<strong>“Dynamic 3D Inference”</strong> vision, which explores a
+fundamental question:</p>
+<blockquote>
+<p><em>“How to infer 3D properties of objects by moving their projection
+on a 2D view to a target projection?”</em></p>
+</blockquote>
+<p>This project introduces a novel, explainable approach to 3D
+inference, detailed in the paper <a
+href="https://arxiv.org/abs/2211.04691">“A Solution for the Fundamental
+Problem of 3D Inference based on 2D Representations”</a>.</p>
+<hr />
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
+<li><a href="#the-vision-dynamic-3d-inference">The Vision: Dynamic 3D
+Inference</a>
+<ul>
+<li><a href="#dynamic-gradient-flows">Dynamic Gradient Flows</a></li>
+<li><a
+href="#platonic-representation-based-3d-inference">Platonic-representation
+based 3D inference</a></li>
+<li><a href="#countable-vision">Countable Vision</a></li>
+</ul></li>
+<li><a href="#scientific-foundation">Scientific Foundation</a></li>
 <li><a href="#installation">Installation</a></li>
-<li><a href="#integrated-applications">Integrated Applications</a></li>
-<li><a href="#next-release-features">Next Release Features</a></li>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#roadmap">Roadmap</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#citation">Citation</a></li>
 <li><a href="#license">License</a></li>
 </ul>
-<h2 id="installation">Installation</h2>
-<h3 id="install-from-pypi">Install from PyPI</h3>
-<p>You can install <strong>smap</strong> directly from PyPI using
-pip:</p>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install smap-torch</span></code></pre></div>
-<h3 id="development-installation">Development Installation</h3>
-<p>Follow these steps to install and set up SMap for development:</p>
+<h2 id="the-vision-dynamic-3d-inference">The Vision: Dynamic 3D
+Inference</h2>
+<p>This project is built upon three main pillars:</p>
+<h3 id="dynamic-gradient-flows">Dynamic Gradient Flows</h3>
+<p>This concept rethinks backpropagation for differentiable rendering.
+Instead of optimizing an image-based loss which often “bubbles” a new
+point into existence, this method controls the gradient flow to
+physically <strong>translate an existing point</strong> to its
+corresponding target position on the screen. It treats the problem as a
+multi-objective optimization where each point is an objective, leading
+to a more stable and meaningful optimization process.</p>
+<h3
+id="platonic-representation-based-3d-inference">Platonic-representation
+based 3D inference</h3>
+<p>The projection of an object onto an image is a 2D instance of that
+object’s ideal “Platonic representation”. This project performs 3D
+inference directly on these representations built during training.
+Unlike other approaches, our inverse rendering solution integrates the
+3D inference process into the training loop.</p>
+<p>Consequently, if the target view changes due to a shift in 3D
+parameters (e.g., rotation or translation), the process doesn’t restart
+from scratch. Instead, it efficiently adapts by “moving” the object to
+its new configuration.</p>
+<h3 id="countable-vision">Countable Vision</h3>
+<p>This concept will be revealed in the second phase of the project.</p>
+<h2 id="scientific-foundation">Scientific Foundation</h2>
+<p>The core ideas are formally presented in our research paper. We
+introduce a generalization of the Blind PnP problem and provide a
+gradient-descent-based solution. The experiments are designed as
+illustrations of the theory rather than competitive benchmarks.</p>
+<blockquote>
+<p>📄 <strong>Read the full paper on arXiv: <a
+href="https://arxiv.org/abs/2211.04691">https://arxiv.org/abs/2211.04691</a></strong></p>
+</blockquote>
+<h2 id="applications-demos">Applications &amp; Demos</h2>
+<ul>
+<li><strong>Camera Calibration:</strong> Camera calibration as a
+<strong><a
+href="https://medium.com/@thienan092/from-pni-camera-calibration-to-monocular-3d-scene-reconstruction-part-i-what-is-c80879815e55">Perspective-n-Image</a></strong>
+solver.
+<ul>
+<li>You can explore the implementation, which uses the <strong><a
+href="https://github.com/thienannguyen-cv/Sky-dataset">Sky-dataset</a></strong>,
+in the <a
+href="https://github.com/thienannguyen-cv/SMap/blob/main/applications/Camera%20Calibration/camera-calibration.ipynb">Jupyter
+Notebook</a>.</li>
+<li>For a quick look at the application, see the interactive demo
+below.</li>
+</ul>
+<a href="https://thienannguyen-cv.github.io/cab-viz/"><img
+src="https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&amp;logo=github"
+alt="Live Demo" /></a></li>
+</ul>
+<h2 id="setup-installation">Setup &amp; Installation</h2>
+<h3 id="setup-environment-with-conda">Setup environment with Conda</h3>
+<p>Follow these steps to set up a complete development environment for
+SMap. This is the recommended approach for both using and contributing
+to the library.</p>
+<h4 id="prerequisites">1. Prerequisites</h4>
+<ul>
+<li><strong>Conda:</strong> Ensure you have Anaconda or Miniconda
+installed.</li>
+<li><strong>(GPU) NVIDIA Driver:</strong> If you want to use a GPU
+(highly recommended), make sure you have the latest NVIDIA driver that
+supports <strong>CUDA 11.8 or newer</strong>.
+<ul>
+<li>Visit the <a
+href="https://www.nvidia.com/Download/index.aspx">NVIDIA Driver
+Downloads</a> page to update.</li>
+<li>After installing and rebooting, open a Command Prompt and run
+<code>nvidia-smi</code> to check the supported CUDA version.</li>
+</ul></li>
+</ul>
+<h4 id="create-the-conda-environment">2. Create the Conda
+Environment</h4>
 <ol type="1">
-<li><p><strong>Clone the repository:</strong></p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/thienannguyen-cv/SMap.git</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> SMap</span></code></pre></div></li>
-<li><p><strong>(Optional) Create and activate a virtual
-environment:</strong></p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># On Linux or macOS:</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> venv/bin/activate</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># On Windows:</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">venv\Scripts\activate</span></span></code></pre></div></li>
-<li><p><strong>Install dependencies:</strong></p>
-<p>Upgrade pip and setuptools, then install all required packages:</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pip setuptools</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div></li>
-<li><p><strong>Install SMap in editable mode:</strong></p>
-<p>This allows you to develop SMap and have changes reflected
-immediately without reinstalling the package:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div></li>
+<li><p><strong>Use the <code>environment.yml</code> file:</strong> This
+project includes an <code>environment.yml</code> file with a reliable
+configuration to ensure PyTorch is installed correctly with CUDA
+support.</p></li>
+<li><p><strong>Create the environment:</strong> Open <strong>Anaconda
+Prompt</strong> (not Git Bash or a standard cmd), navigate to the
+project’s root directory, and run the following command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> env create <span class="at">-f</span> environment.yml</span></code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> If an environment with the same name
+(<code>smap_env</code>) already exists, it’s best to remove it first
+with <code>conda env remove -n smap_env</code> before running the
+<code>create</code> command. This ensures a clean installation.</p>
+</blockquote></li>
+<li><p><strong>Activate the environment:</strong> Once the installation
+is complete, activate the new environment:
+<code>bash     conda activate smap_env</code> You will see the
+environment name <code>(smap_env)</code> at the beginning of your
+command prompt line.</p></li>
 </ol>
-<p>After installation, you can import the package in your python
-project, for example:</p>
+<h4 id="verify-the-installation">3. Verify the Installation</h4>
+<p>To ensure PyTorch was installed correctly with GPU support, you can
+run the following Python script.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check PyTorch version</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;PyTorch version: </span><span class="sc">{</span>torch<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if CUDA is available</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Is CUDA available: </span><span class="sc">{</span>torch<span class="sc">.</span>cuda<span class="sc">.</span>is_available()<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># If CUDA is available, display details</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> torch.cuda.is_available():</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;CUDA version PyTorch was compiled with: </span><span class="sc">{</span>torch<span class="sc">.</span>version<span class="sc">.</span>cuda<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;cuDNN version: </span><span class="sc">{</span>torch<span class="sc">.</span>backends<span class="sc">.</span>cudnn<span class="sc">.</span>version()<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Number of GPUs: </span><span class="sc">{</span>torch<span class="sc">.</span>cuda<span class="sc">.</span>device_count()<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Current GPU name: </span><span class="sc">{</span>torch<span class="sc">.</span>cuda<span class="sc">.</span>get_device_name(<span class="dv">0</span>)<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;PyTorch is running on CPU. Please check your NVIDIA driver and CUDA installation.&quot;</span>)</span></code></pre></div>
+<p>Run this script from your Anaconda Prompt (with the
+<code>smap_env</code> environment activated). The expected output for a
+successful GPU setup is:</p>
+<pre><code>PyTorch version: 2.0.1
+Is CUDA available: True
+CUDA version PyTorch was compiled with: 11.8
+...</code></pre>
+<h3 id="install-from-pypi">Install from PyPI</h3>
+<p>The recommended way to install <code>smap-torch</code> is from
+PyPI:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install smap-torch</span></code></pre></div>
+<h3 id="development-installation">Development Installation</h3>
+<p>To set up SMap for development:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone the repository</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/thienannguyen-cv/SMap.git</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> SMap</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. (Optional) Create and activate a virtual environment</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># On Linux or macOS:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv <span class="kw">&amp;&amp;</span> <span class="bu">source</span> venv/bin/activate</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># On Windows:</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv <span class="kw">&amp;&amp;</span> <span class="ex">venv\Scripts\activate</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Install dependencies</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pip setuptools</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Install SMap in editable mode</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<h2 id="quick-start">Quick Start</h2>
+<p>Here is a simple example of how to use the library. After
+installation, you can import and use the <code>SMap</code> classes in
+your Python project:</p>
 <div class="sourceCode" id="cb6"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smap <span class="im">import</span> SMap, SMap3x3</span></code></pre></div>
-<h2 id="integrated-applications">Integrated Applications</h2>
-<ul>
-<li>Camera Calibration as a PnI solver.</li>
-</ul>
-<h2 id="next-release-features">Next Release Features</h2>
-<ul>
-<li>Depth Estimation for unique-shape objects.</li>
-</ul>
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smap <span class="im">import</span> SMap, SMap3x3</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Assume you have an input tensor (e.g., a binary mask)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Shape: (N, C, H, W)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>N, C, H, W <span class="op">=</span> [<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">128</span>, <span class="dv">256</span>]</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>input_tensor <span class="op">=</span> torch.randn(N, C, H, W)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize SMap</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Define an affine transformation for the camera</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>camera <span class="op">=</span> numpy.array([[<span class="fl">2304.5479</span>, <span class="dv">0</span>,  <span class="fl">1686.2379</span>], </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                      [<span class="dv">0</span>, <span class="fl">2305.8757</span>, <span class="op">-</span><span class="fl">0.0151</span>],</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                      [<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">1.</span>]], dtype<span class="op">=</span>numpy.float32)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>smap_model <span class="op">=</span> SMap(H, W, camera, <span class="st">&quot;cpu&quot;</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Pass the tensor through the model to get the mapping result</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> smap_model(input_tensor)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co"># The output contains the result of the spatial mapping</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Output shape:&quot;</span>, output.shape)</span></code></pre></div>
+<h2 id="roadmap">Roadmap</h2>
+<p>The next release will focus on: * <strong>Depth Estimation:</strong>
+Implementing depth estimation for single-shape objects.</p>
+<p>For more detailed plans, you can check our <a
+href="https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management">Trello
+Board</a>.</p>
+<h2 id="contributing">Contributing</h2>
+<p>Contributions are welcome! If you have suggestions or want to
+contribute code, please open an issue to discuss your ideas or submit a
+pull request.</p>
+<h2 id="citation">Citation</h2>
+<p>If you use SMap or its underlying concepts in your research, please
+cite our paper:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">nguyen2022solution</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">title</span>={A Solution for a Fundamental Problem of 3D Inference based on 2D Representations},</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">author</span>={Nguyen, Thien An L},</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">journal</span>={arXiv preprint arXiv:2211.04691},</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">year</span>={2022}</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <h2 id="license">License</h2>
-<p><a href="LICENSE">Apache 2.0</a></p>
+<p>This project is licensed under the <strong>Apache 2.0
+License</strong>. See the <a href="LICENSE">LICENSE</a> file for more
+details.</p>
 <hr>
 <p><a href="#table-of-contents">Go to Top</a></p>

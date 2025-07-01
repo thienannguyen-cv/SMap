@@ -39,7 +39,8 @@ based 3D inference</a></li>
 <li><a href="#countable-vision">Countable Vision</a></li>
 </ul></li>
 <li><a href="#scientific-foundation">Scientific Foundation</a></li>
-<li><a href="#installation">Installation</a></li>
+<li><a href="#applications--demos">Applications &amp; Demos</a></li>
+<li><a href="#setup--installation">Setup &amp; Installation</a></li>
 <li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#roadmap">Roadmap</a></li>
 <li><a href="#contributing">Contributing</a></li>
@@ -133,14 +134,14 @@ project’s root directory, and run the following command:</p>
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> env create <span class="at">-f</span> environment.yml</span></code></pre></div>
 <blockquote>
 <p><strong>Note:</strong> If an environment with the same name
-(<code>smap_env</code>) already exists, it’s best to remove it first
-with <code>conda env remove -n smap_env</code> before running the
+(<code>smap-env</code>) already exists, it’s best to remove it first
+with <code>conda env remove -n smap-env</code> before running the
 <code>create</code> command. This ensures a clean installation.</p>
 </blockquote></li>
 <li><p><strong>Activate the environment:</strong> Once the installation
 is complete, activate the new environment:
-<code>bash     conda activate smap_env</code> You will see the
-environment name <code>(smap_env)</code> at the beginning of your
+<code>bash     conda activate smap-env</code> You will see the
+environment name <code>(smap-env)</code> at the beginning of your
 command prompt line.</p></li>
 </ol>
 <h4 id="verify-the-installation">3. Verify the Installation</h4>
@@ -164,7 +165,7 @@ class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a hr
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;PyTorch is running on CPU. Please check your NVIDIA driver and CUDA installation.&quot;</span>)</span></code></pre></div>
 <p>Run this script from your Anaconda Prompt (with the
-<code>smap_env</code> environment activated). The expected output for a
+<code>smap-env</code> environment activated). The expected output for a
 successful GPU setup is:</p>
 <pre><code>PyTorch version: 2.0.1
 Is CUDA available: True

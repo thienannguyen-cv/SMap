@@ -24,7 +24,8 @@ This project introduces a novel, explainable approach to 3D inference, detailed 
   - [Platonic-representation based 3D inference](#platonic-representation-based-3d-inference)
   - [Countable Vision](#countable-vision)
 - [Scientific Foundation](#scientific-foundation)
-- [Installation](#installation)
+- [Applications & Demos](#applications--demos)
+- [Setup & Installation](#setup--installation)
 - [Quick Start](#quick-start)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -83,14 +84,14 @@ Follow these steps to set up a complete development environment for SMap. This i
     ```bash
     conda env create -f environment.yml
     ```
-    > **Note:** If an environment with the same name (`smap_env`) already exists, it's best to remove it first with `conda env remove -n smap_env` before running the `create` command. This ensures a clean installation.
+    > **Note:** If an environment with the same name (`smap-env`) already exists, it's best to remove it first with `conda env remove -n smap-env` before running the `create` command. This ensures a clean installation.
 
 3.  **Activate the environment:**
     Once the installation is complete, activate the new environment:
     ```bash
-    conda activate smap_env
+    conda activate smap-env
     ```
-    You will see the environment name `(smap_env)` at the beginning of your command prompt line.
+    You will see the environment name `(smap-env)` at the beginning of your command prompt line.
 
 #### 3. Verify the Installation
 
@@ -115,7 +116,7 @@ else:
     print("PyTorch is running on CPU. Please check your NVIDIA driver and CUDA installation.")
 ```
 
-Run this script from your Anaconda Prompt (with the `smap_env` environment activated). The expected output for a successful GPU setup is:
+Run this script from your Anaconda Prompt (with the `smap-env` environment activated). The expected output for a successful GPU setup is:
 ```
 PyTorch version: 2.0.1
 Is CUDA available: True

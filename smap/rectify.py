@@ -1,7 +1,4 @@
-import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from smap import specials, utils
 from enum import Enum, auto
 
@@ -9,7 +6,7 @@ class types(Enum):
     DEF = auto()
     CAM = auto()
 
-class DefaultRectify(nn.Module):
+class DefaultRectify(torch.nn.Module):
     def __init__(self, smap3x3):
         super(DefaultRectify,self).__init__()
         self.smap3x3 = smap3x3

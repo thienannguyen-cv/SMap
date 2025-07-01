@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
 import torch
-import torch.nn.functional as F
-from smap import *
+from smap import SMap3x3, utils
 
 # the test case
 class SMap3x3UTestCase(unittest.TestCase):
@@ -114,7 +113,7 @@ class SMap3x3UTestCase(unittest.TestCase):
             ind[0,0,0,0,0,pointx0,pointy0] = _ind[0,0,0,0,0,pointx0,pointy0]
         if pointx1>=0 and pointx1<(self.img_shape[0]) and pointy1>=0 and pointy1<(self.img_shape[1]):
             ind[0,0,0,0,0,pointx1,pointy1] = _ind[0,0,0,0,0,pointx1,pointy1]
-        ind = F.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,1,1, self.img_shape[0], self.img_shape[1],3*3).permute(0,1,6,2,3,4,5).reshape(BATCH_SIZE,-1,3*3,1,1, self.img_shape[0], self.img_shape[1])
+        ind = torch.nn.functional.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,1,1, self.img_shape[0], self.img_shape[1],3*3).permute(0,1,6,2,3,4,5).reshape(BATCH_SIZE,-1,3*3,1,1, self.img_shape[0], self.img_shape[1])
         ind = (ind>.5)
         actual = utils.agg(unfolded_depth_map.reshape(BATCH_SIZE,1,3,3,channel_num, self.img_shape[0], self.img_shape[1]), ind=ind, factor=factor).cpu().numpy()
         
@@ -131,7 +130,7 @@ class SMap3x3UTestCase(unittest.TestCase):
                 expected[:,pointx0,pointy0] = torch.from_numpy(first_values+second_values)
             else:
                 expected[:,pointx0,pointy0] = torch.from_numpy(first_values)
-        expected = expected.reshape(1,1,1,1,channel_num, self.img_shape[0], self.img_shape[1])
+        expected = expected.reshape(BATCH_SIZE,1,1,1,channel_num, self.img_shape[0], self.img_shape[1])
         try:
             np.testing.assert_allclose(actual, expected,
                                        err_msg="Aggregating absolute-alignment representation failed.")

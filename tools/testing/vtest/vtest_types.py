@@ -1,9 +1,8 @@
 import torch
-from torch import nn
 import numpy as np
 from smap import utils
 
-class NoneBot(nn.Module):
+class NoneBot(torch.nn.Module):
     def __init__(self, module=None):
         super(NoneBot, self).__init__()
         self.module = module
@@ -13,7 +12,7 @@ class NoneBot(nn.Module):
             return self.module(x)
         return x+0
     
-class TestBot_In(nn.Module):
+class TestBot_In(torch.nn.Module):
     def __init__(self, module=None, offset_in=0, name="in", connet2name="out"):
         super(TestBot_In, self).__init__()
         def get_activation_grad(name, connet2name="out"):
@@ -56,7 +55,7 @@ class TestBot_In(nn.Module):
         self.input_representation = mask.detach().cpu().numpy().reshape(h, w)
         return self.module(x)
     
-class TestBot_Out(nn.Module):
+class TestBot_Out(torch.nn.Module):
     def __init__(self, module=None, offset_out=4, name="in", connet2name="out"):
         super(TestBot_Out, self).__init__()
         def get_activation_grad(name, connet2name="out"):
@@ -86,7 +85,7 @@ class TestBot_Out(nn.Module):
     def forward(self, x):
         return self.module(x)
     
-class TestBot_Input_3_3(nn.Module):
+class TestBot_Input_3_3(torch.nn.Module):
     def __init__(self, module=None, name="out"):
         super(TestBot_Input_3_3, self).__init__()
         def get_activation_grad(name='out'):
@@ -126,7 +125,7 @@ class TestBot_Input_3_3(nn.Module):
         
         return self.module(x)
     
-class TestBot_Target(nn.Module):
+class TestBot_Target(torch.nn.Module):
     def __init__(self, module=None, name="out"):
         super(TestBot_Target, self).__init__()
         def get_activation_grad(name='out'):
@@ -162,7 +161,7 @@ class TestBot_Target(nn.Module):
             np.save(self.testcase.out_path+self.testcase.name+"_target_representation.npy", self.target_representation)
         return self.module(x)
     
-class TestBot_In_3_3(nn.Module):
+class TestBot_In_3_3(torch.nn.Module):
     def __init__(self, module=None, offset_in=0, name="in", connet2name="out"):
         super(TestBot_In_3_3, self).__init__()
         def get_activation_grad(name, connet2name="out"):
@@ -222,7 +221,7 @@ class TestBot_In_3_3(nn.Module):
             self.input_representation = mask.detach().cpu().numpy().reshape(h, w)
         return self.module(x)
     
-class TestBot_Out_3_3(nn.Module):
+class TestBot_Out_3_3(torch.nn.Module):
     def __init__(self, module=None, offset_out=4, name="in", connet2name="out"):
         super(TestBot_Out_3_3, self).__init__()
         def get_activation_grad(name, connet2name="out"):

@@ -1,7 +1,5 @@
 import numpy as np
 import torch
-import torch.nn.functional as F
-from smap import specials
 
 DEBUG_FLAG = False
 
@@ -19,7 +17,7 @@ def to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix
     y_im, x_im = y_im.to(device), x_im.to(device)
 
     imp_co = torch.cat([torch.einsum('hw,bczhw->bczhw', x_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.einsum('hw,bczhw->bczhw', y_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.ones_like(z.unsqueeze(2))], 2)
-    imp_co = F.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width)
+    imp_co = torch.nn.functional.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width)
     
     imp_co = torch.einsum('bchw,bczshw->bczshw', z.float(), imp_co.float()).reshape(z.size(0),z.size(1),3,3*3,-1)
     

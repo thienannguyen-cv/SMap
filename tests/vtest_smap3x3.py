@@ -3,7 +3,6 @@ import os
 import numpy as np
 import torch
 from torch import nn
-import torch.nn.functional as F
 import pickle
 from smap import *
 from tools.testing.vtest.vtest_types import *
@@ -338,6 +337,8 @@ class SMap3x3VTestCase(unittest.TestCase):
             raise e
             
     def test_in_r_2st_stage(self):
+        BATCH_SIZE = 1
+
         testcase_name = "test_in_r_2st_stage"
         test_type_param_dict = {"above_left": [0,0], "above": [0,1], "above_right": [0,2], "right": [1,0], "below_right": [2,0], "below": [2,1], "below_left": [2,2], "left": [1,2], "still": [1,1]}
         test_types = ["above_left", "above", "above_right", "right", "below_right", "below", "below_left", "left", "still"]
@@ -357,15 +358,15 @@ class SMap3x3VTestCase(unittest.TestCase):
         input_repr_x = nn.Parameter(input_repr[:,:,:1,:,:], requires_grad=True).to(self.device)
         input_repr_y = nn.Parameter(input_repr[:,:,1:2,:,:], requires_grad=True).to(self.device)
         input_repr_z = (input_repr[:,:,2:3,:,:]).to(self.device)
-        
-        input_mask = self.input_mask.reshape(1,1,1, self.input_mask.shape[0], self.input_mask.shape[1])
+
+        input_mask = self.input_mask.reshape(BATCH_SIZE,1,1, self.input_mask.shape[0], self.input_mask.shape[1])
         temp = (input_mask[0,0,:,active_point_img_coords[0], active_point_img_coords[1]]).cpu().numpy()
         input_mask[0,0,:,active_point_img_coords[0], active_point_img_coords[1]] = 0*(input_mask[0,0,:,active_point_img_coords[0], active_point_img_coords[1]])
         input_mask[0,0,:,active_point_img_coords[0]+offsetx-1, active_point_img_coords[1]+offsety-1] = 0.+torch.from_numpy(temp)
         input_mask = nn.Parameter(input_mask, requires_grad=True).to(self.device)
         
         target_repr = torch.from_numpy(np.load(f"./tests/vtest_data/smap3x3/{test_type[1]}_target.npy"))
-        target_repr = (1.*(target_repr)).reshape(1,1, self.input_mask.shape[0], self.input_mask.shape[1]).to(self.device)
+        target_repr = (1.*(target_repr)).reshape(BATCH_SIZE,1, self.input_mask.shape[0], self.input_mask.shape[1]).to(self.device)
         # testing/target
         self.vtestcase.testbot_target(target_repr)
         
@@ -375,7 +376,7 @@ class SMap3x3VTestCase(unittest.TestCase):
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
         pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
         loss_m = torch.abs(weights-target_repr)

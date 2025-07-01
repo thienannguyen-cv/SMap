@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
 import torch
-import torch.nn.functional as F
-from smap import *
+from smap import SMap
 
 # the test case
 class RectifyUTestCase(unittest.TestCase):
@@ -18,7 +17,7 @@ class RectifyUTestCase(unittest.TestCase):
         self.panel[1] = self.panel[1] + .5
         self.smap = SMap(self.img_shape[0], self.img_shape[1], self.camera, n=self.n, device=self.device).to(self.device)
         self.rectify_module = self.smap.rectify_module
-            
+    
     def test_prepare_flows_for_coord(self):
         cases = ["blocked", "random"]
         case_id = np.random.choice(len(cases),size=None)
@@ -100,7 +99,7 @@ class RectifyUTestCase(unittest.TestCase):
                 print(f"target_offsetx, target_offsety: {(target_offsetx, target_offsety)}")
                 print(f"actual: {actual}")
                 raise e
-            
+    
     def test_prepare_flows_for_mask(self):
         cases = ["blocked", "random"]
         case_id = np.random.choice(len(cases),size=None)
@@ -171,5 +170,3 @@ class RectifyUTestCase(unittest.TestCase):
                 print(f"target_offsetx, target_offsety: {(target_offsetx, target_offsety)}")
                 print(f"actual: {actual}")
                 raise e
-
-    

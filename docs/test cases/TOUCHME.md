@@ -18,14 +18,13 @@
         -   [test_in_y_2st_stage](#test-case-test_in_y_2st_stage)
         -   [test_in_r_1st_stage](#test-case-test_in_r_1st_stage)
         -   [test_in_r_2st_stage](#test-case-test_in_r_2st_stage)
-    -   [Summary](#summary)
 -   [Debug and Create Test Case with vtest Tool](#debug-and-create-test-case-with-vtest-tool)
     -   [Debugging Gradients](#debugging-gradients)
     -   [Creating a Test Case](#creating-a-test-case)
 
 ------------------------------------------------------------------------
 
-# Test Case Overview {#test-case-overview}
+# Test Case Overview
 
 The `tests` directory is essential for ensuring the correctness, stability, and reliability of the SMap library. This document describes the meaning, detailed logic, and expected outputs for each test case, with illustrative examples and diagrams to help contributors and users understand the test coverage.
 
@@ -51,7 +50,7 @@ Main test files:
 
 ## File: `utest_smap.py`
 
-### Test Case: `test_prepare_flows_for_coord` {#test-case-test_prepare_flows_for_coord}
+### Test Case: `test_prepare_flows_for_coord`
 
 **Assure:**\
 Blocking gradient flows at the edges of the input image or gradient flow at a point which has its *proper screen position* is an active point on the target image.
@@ -101,7 +100,7 @@ Verifies that the `prepare_flows_for_coord` method correctly identifies valid an
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_prepare_flows_for_mask` {#test-case-test_prepare_flows_for_mask}
+### Test Case: `test_prepare_flows_for_mask`
 
 **Assure:**\
 Blocking gradient flow at a point which has its *proper screen position* is an active point on the target image.
@@ -151,7 +150,7 @@ other offsets: 0
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_SMap_forward` {#test-case-test_smap_forward}
+### Test Case: `test_SMap_forward`
 
 **Assure:**\
 The forward pass of SMap maps the activated point's position to its *proper screen position* on the *2D representation*.
@@ -163,7 +162,7 @@ Run "1-stage" SMap explicitly.
 
 ## File: `utest_smap3x3.py`
 
-### Test Case: `test_to_3d3x3` {#test-case-test_to_3d3x3}
+### Test Case: `test_to_3d3x3`
 
 **Assure:**\
 The function `to_3d3x3` correctly converts a depth map to 3D coordinates for a 3x3 neighborhood.
@@ -204,7 +203,7 @@ other: 0
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_agg_factor_only` {#test-case-test_agg_factor_only}
+### Test Case: `test_agg_factor_only`
 
 **Assure:**\
 Activated points overwrite the default value.
@@ -235,7 +234,7 @@ Checks aggregation logic using only a factor.
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_agg_ind` {#test-case-test_agg_ind}
+### Test Case: `test_agg_ind`
 
 **Assure:**\
 Correctly overwritten by active indices.
@@ -270,7 +269,7 @@ Checks indexed aggregation for multi-channel tensors.
 
 ## File: `vtest_smap3x3.py`
 
-### Test Case: `test_in_x_1st_stage` {#test-case-test_in_x_1st_stage}
+### Test Case: `test_in_x_1st_stage`
 
 **Assure:**\
 Gradients only at valid positions.
@@ -280,7 +279,7 @@ Tests backward gradient propagation when shifting mask along x direction.
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_in_x_2st_stage` {#test-case-test_in_x_2st_stage}
+### Test Case: `test_in_x_2st_stage`
 
 **Assure:**\
 Final gradient is at the initial position if the chain of movements is valid.
@@ -290,7 +289,7 @@ Tests gradients for two-stage shifts along x.
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_in_y_1st_stage` {#test-case-test_in_y_1st_stage}
+### Test Case: `test_in_y_1st_stage`
 
 **Assure:**\
 Gradients only at valid positions (e.g. moving left/right).
@@ -300,7 +299,7 @@ Tests backward gradient propagation when shifting mask along y direction.
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_in_y_2st_stage` {#test-case-test_in_y_2st_stage}
+### Test Case: `test_in_y_2st_stage`
 
 **Assure:**\
 Correct gradient at the initial position.
@@ -310,7 +309,7 @@ Tests gradients for two-stage shifts along y direction (e.g. left then right).
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_in_r_1st_stage` {#test-case-test_in_r_1st_stage}
+### Test Case: `test_in_r_1st_stage`
 
 **Assure:**\
 Gradients are only at valid positions, including the "still" (no movement) case.
@@ -320,7 +319,7 @@ Tests backward gradient propagation for mask (r).
 
 ------------------------------------------------------------------------
 
-### Test Case: `test_in_r_2st_stage` {#test-case-test_in_r_2st_stage}
+### Test Case: `test_in_r_2st_stage`
 
 **Assure:**\
 Correct gradient at the initial position depending on movement sequence.
@@ -330,10 +329,10 @@ Tests backward gradient propagation for two-stage mask (r) transformations.
 
 ------------------------------------------------------------------------
 
-# Debug Gradients and Create Test Case with vtest Tool {#debug-and-create-test-case-with-vtest-tool}
+# Debug Gradients and Create Test Case with vtest Tool
 
 Although, in theory, the optimization process of a single point using SMap permits actions independent of its position on the 2D representation. In practice, the complexity comes from maintaining this optimization behavior across multiple configurations of its 3x3 neighborhoods when there are other points on the 2D representation or when the point is at the edge of the image. The `vtest` tool is developed to help debug and create test cases for these scenarios.
 
-## Debugging Gradients {#debugging-gradients}
+## Debugging Gradients
 
-## Creating a Test Case {#creating-a-test-case}
+## Creating a Test Case

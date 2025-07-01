@@ -1,4 +1,4 @@
-name: smap_env # Name of the Conda environment to be created
+name: smap-env # Name of the Conda environment to be created
 channels:
   - pytorch
   - nvidia

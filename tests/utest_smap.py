@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
 import torch
-import torch.nn.functional as F
-from smap import *
+from smap import SMap, utils
 
 # the test case
 class SMapUTestCase(unittest.TestCase):
@@ -20,6 +19,8 @@ class SMapUTestCase(unittest.TestCase):
         self.smap3x3 = self.smap.smap3x3
             
     def test_prepare_flows_for_coord(self):
+        BATCH_SIZE = 1
+        
         cases = ["blocked", "random"]
         case_id = np.random.choice(len(cases),size=None)
         
@@ -42,9 +43,9 @@ class SMapUTestCase(unittest.TestCase):
             target = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
             target[target_pointx, target_pointy] = 1.
             
-            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(BATCH_SIZE,1,3,3,1, height, width), target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
             
-            actual = self.smap.rectify_module.prepare_flows_for_coord(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
+            actual = self.smap.rectify_module.prepare_flows_for_coord(allow, target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
             
             offset = np.random.choice(range(3*3),size=None)
             referenced_point_x = active_point_img_coords[0]-(offset//3)
@@ -74,11 +75,11 @@ class SMapUTestCase(unittest.TestCase):
 
             target = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
             target[target_pointx, target_pointy] = 1.
-            
-            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
-            actual = self.smap.rectify_module.prepare_flows_for_coord(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
+
+            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(BATCH_SIZE,1,3,3,1, height, width), target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
+            actual = self.smap.rectify_module.prepare_flows_for_coord(allow, target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
             offset = np.random.choice(range(3*3),size=None)
             referenced_point_x = active_point_img_coords[0]-(offset//3)
             referenced_point_y = active_point_img_coords[1]-(offset%3)
@@ -102,6 +103,8 @@ class SMapUTestCase(unittest.TestCase):
                 raise e
             
     def test_prepare_flows_for_mask(self):
+        BATCH_SIZE = 1
+
         cases = ["blocked", "random"]
         case_id = np.random.choice(len(cases),size=None)
         
@@ -125,11 +128,11 @@ class SMapUTestCase(unittest.TestCase):
 
             target = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
             target[target_pointx, target_pointy] = 1.
-            
-            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
-            actual = self.smap.rectify_module.prepare_flows_for_mask(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
+
+            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(BATCH_SIZE,1,3,3,1, height, width), target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
+            actual = self.smap.rectify_module.prepare_flows_for_mask(allow, target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
             offset = np.random.choice(range(3*3),size=None)
             try:
                 assert torch.sum((actual[0,offset,:,:]>0).float()).reshape(-1).cpu().numpy()[0] == (((self.img_shape[0])*(self.img_shape[1])-1) if is_activated else ((self.img_shape[0])*(self.img_shape[1]))), "Flows preparing test failed. "
@@ -152,11 +155,11 @@ class SMapUTestCase(unittest.TestCase):
 
             target = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
             target[target_pointx, target_pointy] = 1.
-            
-            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(1,1,3,3,1, height, width), target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
-            actual = self.smap.rectify_module.prepare_flows_for_mask(allow, target.reshape(1,1,1,1, self.img_shape[0], self.img_shape[1]))
-            
+
+            allow = self.smap.rectify_module.compute_allow_matrix(weights.reshape(BATCH_SIZE,1,3,3,1, height, width), target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
+            actual = self.smap.rectify_module.prepare_flows_for_mask(allow, target.reshape(BATCH_SIZE,1,1,1, self.img_shape[0], self.img_shape[1]))
+
             offset = np.random.choice(range(3*3),size=None)
             try:
                 if offsetx!=target_offsetx or offsety!=target_offsety:
@@ -173,6 +176,8 @@ class SMapUTestCase(unittest.TestCase):
                 raise e
 
     def test_SMap_forward(self):
+        BATCH_SIZE = 1
+
         zoom = 0
         activated_coords = [np.array([np.random.choice(range(self.img_shape[0]), size=None)]), np.array([np.random.choice(range(self.img_shape[1]), size=None)])]
         traverse_diff = np.array([0., -0., 0.]).reshape(1,3)
@@ -182,7 +187,7 @@ class SMapUTestCase(unittest.TestCase):
         input_mask = torch.from_numpy(mask).float().to(self.device).reshape(1,1, self.img_shape[0], self.img_shape[1])
         z = 1.
         input_repr = (z*input_mask)
-        input_repr = utils.to_3d(input_repr.reshape(1,1, self.img_shape[0], self.img_shape[1]), self.img_shape[0], self.img_shape[1], self.panel, self.img_shape, self.img_shape, self.smap3x3.camera_matrix_inv, self.device).reshape(1,3, self.img_shape[0], self.img_shape[1])
+        input_repr = utils.to_3d(input_repr.reshape(BATCH_SIZE,1, self.img_shape[0], self.img_shape[1]), self.img_shape[0], self.img_shape[1], self.panel, self.img_shape, self.img_shape, self.smap3x3.camera_matrix_inv, self.device).reshape(BATCH_SIZE,3, self.img_shape[0], self.img_shape[1])
         
         actual = self.smap(torch.cat([input_repr, input_mask], dim=1), None, zoom)
         actual = (actual[:,-1,:,:]).detach().cpu().numpy().reshape(self.img_shape[0], self.img_shape[1])

@@ -1,7 +1,5 @@
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from smap import specials, utils, rectify
 
 def flip(x, dim):
@@ -10,16 +8,16 @@ def flip(x, dim):
              else torch.arange(x.size(i)-1, -1, -1).long()
              for i in range(x.dim()))]
     
-class SMap3x3(nn.Module):
+class SMap3x3(torch.nn.Module):
     def __init__(self, window_h, window_w, camera_matrix, device):
         super(SMap3x3,self).__init__()
         self.window_h = window_h
         self.window_w = window_w
-        self.camera_matrix = nn.Parameter(torch.from_numpy(camera_matrix), requires_grad=False)
-        self.camera_matrix_inv = nn.Parameter(torch.from_numpy(np.linalg.inv(camera_matrix)), requires_grad=False)
+        self.camera_matrix = torch.nn.Parameter(torch.from_numpy(camera_matrix), requires_grad=False)
+        self.camera_matrix_inv = torch.nn.Parameter(torch.from_numpy(np.linalg.inv(camera_matrix)), requires_grad=False)
         self.device = device
 
-        self.sm = nn.Softmax(dim=2)
+        self.sm = torch.nn.Softmax(dim=2)
     
     def forward(self, x_value, y_value, z_value, r_mask, panels, original_size):
         shapes = x_value.size()
@@ -34,7 +32,7 @@ class SMap3x3(nn.Module):
         # 4. Setting proper tensor, named `weights_b', for differentiable rendering
         weights_b = torch.zeros_like(key_query)
         ind = torch.max(-key_query,dim=2,keepdim=True).indices
-        ind_mask = F.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,height, width,3*3).permute(0,1,4,2,3).reshape(BATCH_SIZE,-1,3*3,height, width)
+        ind_mask = torch.nn.functional.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,height, width,3*3).permute(0,1,4,2,3).reshape(BATCH_SIZE,-1,3*3,height, width)
         weights_b[ind_mask>.5] = 1.
         weights_b = torch.where(((r_mask>specials.OFF_THRESH).float()*(z_values>0.).float()+key_query*0.)>.5, weights_b, torch.zeros_like(weights_b))
         temp = torch.zeros_like(weights_b)
@@ -55,7 +53,7 @@ class SMap3x3(nn.Module):
         pre_x, pre_y, pre_z, pre_mask, panels = utils.add_pad(pre_x, pre_y, pre_z, pre_mask, original_size)
         return pre_x, pre_y, pre_z, pre_mask, panels, self(pre_x, pre_y, pre_z, pre_mask, panels, original_size)
 
-class SMap(nn.Module):
+class SMap(torch.nn.Module):
     def __init__(self, window_h, window_w, camera_matrix, rectify_type=None, n=0, device="cpu"):
         super(SMap,self).__init__()
         self.n = n
@@ -70,7 +68,7 @@ class SMap(nn.Module):
         ind = utils.agg((new_x_z_mask_value[:,:,:,:,-2:-1,:,:]).detach(), factor=specials.INF)
         val, ind = torch.min(ind,dim=2,keepdim=True)
         ind = torch.where((val>0.)&(val<specials.INF), ind, 0*ind+4)
-        ind = F.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,1,1,height, width,3*3).permute(0,1,6,2,3,4,5).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
+        ind = torch.nn.functional.one_hot(ind, num_classes=3*3).reshape(BATCH_SIZE,-1,1,1,height, width,3*3).permute(0,1,6,2,3,4,5).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
         ind = (ind>.5)
         weights = utils.agg(new_x_z_mask_value, ind=ind).reshape(-1,4,height, width)
         

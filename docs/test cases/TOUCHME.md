@@ -18,7 +18,8 @@
         -   [test_in_y_2st_stage](#test-case-test_in_y_2st_stage)
         -   [test_in_r_1st_stage](#test-case-test_in_r_1st_stage)
         -   [test_in_r_2st_stage](#test-case-test_in_r_2st_stage)
--   [Debug and Create Test Case with vtest Tool](#debug-and-create-test-case-with-vtest-tool)
+    -   [Summary](#summary)
+-   [Debug Gradients and Create Test Case with vtest Tool](#debug-gradients-and-create-test-case-with-vtest-tool)
     -   [Debugging Gradients](#debugging-gradients)
     -   [Creating a Test Case](#creating-a-test-case)
 
@@ -284,7 +285,7 @@ Tests backward gradient propagation when shifting mask along x direction.
 **Assure:**\
 Final gradient is at the initial position if the chain of movements is valid.
 
-**Do:**\
+**Describe:**\
 Tests gradients for two-stage shifts along x.
 
 ------------------------------------------------------------------------

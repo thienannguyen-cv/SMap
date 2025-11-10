@@ -197,7 +197,7 @@ If you use SMap or its underlying concepts in your research, please cite our pap
 ```bibtex
 @article{nguyen2022solution,
   title={A Solution for a Fundamental Problem of 3D Inference based on 2D Representations},
-  author={Nguyen, Thien An L},
+  author={Thien An L. Nguyen},
   journal={arXiv preprint arXiv:2211.04691},
   year={2022}
 }

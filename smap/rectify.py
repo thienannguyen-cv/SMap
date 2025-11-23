@@ -185,38 +185,28 @@ class DEPRectify(DefaultRectify):
 
         pre_allow = specials.INF*torch.ones_like(weight)
         pre_allow[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)] = (weight[:,:,:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)])*target_repr.reshape(BATCH_SIZE,-1,1,1,h_zoom, w_zoom)
-        s = torch.sum(torch.sum((pre_allow==1.).float(),dim=1,keepdim=True),dim=2,keepdim=True)
+        s = torch.sum((pre_allow==1.).float(),dim=1,keepdim=True)
         pre_allow_s = torch.zeros_like(weight)+s
-        pre_allow = utils.agg(utils.flip(pre_allow_s,2).reshape(BATCH_SIZE,-1,3,3,1,height, width)).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
-        return pre_allow.detach()
-    
-    def prepare_flows_for_mask(self, pre_allow, weights_b, target_repr):
-        BATCH_SIZE, height, width, w_zoom, h_zoom = pre_allow.shape[0], pre_allow.shape[-2], pre_allow.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
-        
-        allow = torch.max(pre_allow,dim=2,keepdim=True).values
+        pre_allow_s = utils.agg(utils.flip(pre_allow_s,2).reshape(BATCH_SIZE,-1,3,3,1,height, width)).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
 
-        n_flow = pre_allow*torch.max((weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width),dim=2,keepdim=True).values
+        pre_allow = utils.agg(utils.flip(pre_allow,2).reshape(BATCH_SIZE,-1,3,3,1,height, width)).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
+        pre_allow = torch.max(pre_allow,dim=2,keepdim=True).values
+        pre_allow = 1.-pre_allow
+        return pre_allow.detach(), pre_allow_s.detach()
+    
+    def prepare_flows_for_mask(self, pre_allow_s, weights_b, target_repr):
+        BATCH_SIZE, height, width, w_zoom, h_zoom = pre_allow_s.shape[0], pre_allow_s.shape[-2], pre_allow_s.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
+        
+        n_flow = pre_allow_s*torch.max((weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width),dim=2,keepdim=True).values
         n_flow = utils.agg(n_flow.reshape(BATCH_SIZE,-1,3,3,1,height, width))
         
-        y_flow = allow*torch.ones_like(weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
+        y_flow = pre_allow_s*torch.ones_like(weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
         y_flow = utils.agg(y_flow.reshape(BATCH_SIZE,-1,3,3,1,height, width))
-        
-        n_flow = n_flow*torch.ones_like(n_flow)
-        y_flow = y_flow*torch.ones_like(y_flow)
         
         n_flow = (n_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         y_flow = (y_flow.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         
         return torch.where(n_flow==0.,-torch.ones_like(n_flow),n_flow), y_flow.detach()
-    
-    def prepare_flows_for_coord(self, pre_allow, weights_b, target_repr):
-        BATCH_SIZE, height, width, w_zoom, h_zoom = pre_allow.shape[0], pre_allow.shape[-2], pre_allow.shape[-1], target_repr.shape[-1], target_repr.shape[-2]
-        
-        allow = torch.max(pre_allow,dim=2,keepdim=True).values
-        allow = (allow<specials.INF).detach().float()*(~(allow==1.)).detach().float()*torch.max((weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width),dim=2,keepdim=True).values*torch.ones_like(weights_b).reshape(BATCH_SIZE,-1,3*3,1,1,height, width)
-
-        coord_flow = (utils.agg(allow).reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        return coord_flow.detach()
     
     def rectificate_flow(self, new_x_z_mask_value, pre_x, pre_y, pre_z, pre_mask, panels, target, original_size):
         BATCH_SIZE, C_zoom, height, width = new_x_z_mask_value.shape[0], pre_mask.shape[1], new_x_z_mask_value.shape[-2], new_x_z_mask_value.shape[-1]
@@ -239,10 +229,6 @@ class DEPRectify(DefaultRectify):
         h_zoom, w_zoom = shapes[-2], shapes[-1]
 
         target_2Dr = target.reshape(BATCH_SIZE,1,1,1,h_zoom, w_zoom)
-        
-        # testing/target
-        self.vtestcase.orig_shape = (h_zoom, w_zoom)
-        self.vtestcase.testbot_target(target_2Dr.reshape(BATCH_SIZE, 1, h_zoom, w_zoom)+torch.zeros_like(pre_mask.reshape(BATCH_SIZE, -1,height, width)[:1,:,:1,:1]))
 
         
         neg_key_query_grdf = -(neg_pre_key_query-neg_pre_key_query.detach())+1.
@@ -254,33 +240,27 @@ class DEPRectify(DefaultRectify):
         neg_key_query_grdf = neg_key_query_grdf-1.
         
         pos_key_query_grdf = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom,3*3,height, width)
-        # testing/in
-        pos_key_query_grdf = self.vtestcase.testbot_in(pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom*3*3,height, width))
         pos_key_query_grdf = pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pos_key_query_grdf = utils.agg(pos_key_query_grdf).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pos_key_query_grdf = pos_key_query_grdf-1.
         
-        self.vtestcase.testbot_input(pre_mask.reshape(BATCH_SIZE,C_zoom,1,height, width))
         pre_mask = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+(pre_mask).reshape(BATCH_SIZE,C_zoom,1,height, width)
         pre_mask = (pre_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pre_mask = utils.agg(pre_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         weight = utils.agg(weights_b.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width))
         
-        pre_allow = self.compute_pre_allow_matrices((weight>specials.OFF_THRESH).detach().float(), target_2Dr)
+        pre_allow, pre_allow_s = self.compute_pre_allow_matrices((weight>specials.OFF_THRESH).detach().float(), target_2Dr)
         
-        coord_flow = self.prepare_flows_for_coord(pre_allow, (weights_b>specials.OFF_THRESH).detach().float(), target_2Dr)
-        n_flow, y_flow = self.prepare_flows_for_mask(pre_allow, (weights_b>specials.OFF_THRESH).detach().float(), target_2Dr)
+        n_flow, y_flow = self.prepare_flows_for_mask(pre_allow_s, (weights_b>specials.OFF_THRESH).detach().float(), target_2Dr)
+        coord_flow = self.prepare_flows_for_coord(pre_allow, target_2Dr)
         
         
         neg_key_query_grdf = (neg_key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         pos_key_query_grdf = (pos_key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        # testing/out
-        pos_key_query_grdf = self.vtestcase.testbot_out(pos_key_query_grdf)
+        
         pre_mask = (pre_mask.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         weight = (weight.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        # testing/input
-        self.vtestcase.testbot_input(n_flow.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_x_flow.npy")
-        self.vtestcase.testbot_input(y_flow.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_y_flow.npy")
+
         
         target_2Dr = target_2Dr.reshape(BATCH_SIZE,1,h_zoom, w_zoom)
         
@@ -289,10 +269,9 @@ class DEPRectify(DefaultRectify):
         
         
         weights = torch.where(pre_mask>specials.OFF_THRESH, torch.where(weight>specials.OFF_THRESH,pre_mask,.5*pre_mask), -.5*pre_mask)
-        weights_grdf = (1.-2.*(weights<0.).float().detach())*weight_grdf*3e-1*(y_flow==1.).detach().float()*(weight>0.).detach().float()+torch.where(pre_mask>specials.OFF_THRESH, pre_mask_grdf*3e0*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()), -pre_mask_grdf*1e1*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()))*(1.-(y_flow==1.).detach().float()) + (1.-2.*(weights<0.).float().detach())*torch.where(n_flow.detach()>1.,neg_key_query_grdf*3e-1*(1.-n_flow/torch.max(n_flow)).detach(),pos_key_query_grdf*coord_flow.detach())*(target_2Dr>specials.OFF_THRESH).detach().float()
+        weights_grdf = (1.-2.*(weights<0.).float().detach())*weight_grdf*3e-1*(y_flow==1.).detach().float()*(weight>0.).detach().float()+torch.where(pre_mask>specials.OFF_THRESH, pre_mask_grdf*3e0*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()), -pre_mask_grdf*1e1*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()))*(1.-(y_flow==1.).detach().float()) + (1.-2.*(weights<0.).float().detach())*torch.where(n_flow.detach()>1.,neg_key_query_grdf*3e-1*(1.-n_flow/torch.max(n_flow,dim=2,keepdim=True).values).detach(),pos_key_query_grdf*coord_flow.detach())*(target_2Dr>specials.OFF_THRESH).detach().float()
         weights = weights.detach() + weights_grdf # apply attractive rectification for this implementation
         #######################
-        self.vtestcase.testbot_input(weights.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_output.npy")
         
         return weights
     

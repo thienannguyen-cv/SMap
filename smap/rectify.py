@@ -239,10 +239,6 @@ class FUTRectify(DefaultRectify):
         h_zoom, w_zoom = shapes[-2], shapes[-1]
 
         target_2Dr = target.reshape(BATCH_SIZE,1,1,1,h_zoom, w_zoom)
-        
-        # testing/target
-        self.vtestcase.orig_shape = (h_zoom, w_zoom)
-        self.vtestcase.testbot_target(target_2Dr.reshape(BATCH_SIZE, 1, h_zoom, w_zoom)+torch.zeros_like(pre_mask.reshape(BATCH_SIZE, -1,height, width)[:1,:,:1,:1]))
 
         
         neg_key_query_grdf = -(neg_pre_key_query-neg_pre_key_query.detach())+1.
@@ -254,13 +250,10 @@ class FUTRectify(DefaultRectify):
         neg_key_query_grdf = neg_key_query_grdf-1.
         
         pos_key_query_grdf = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom,3*3,height, width)
-        # testing/in
-        pos_key_query_grdf = self.vtestcase.testbot_in(pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom*3*3,height, width))
         pos_key_query_grdf = pos_key_query_grdf.reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pos_key_query_grdf = utils.agg(pos_key_query_grdf).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pos_key_query_grdf = pos_key_query_grdf-1.
         
-        self.vtestcase.testbot_input(pre_mask.reshape(BATCH_SIZE,C_zoom,1,height, width))
         pre_mask = torch.zeros_like(weights_b.reshape(BATCH_SIZE,C_zoom,3*3,height, width))+(pre_mask).reshape(BATCH_SIZE,C_zoom,1,height, width)
         pre_mask = (pre_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
         pre_mask = utils.agg(pre_mask).reshape(BATCH_SIZE,C_zoom,3,3,1,height, width)
@@ -274,13 +267,10 @@ class FUTRectify(DefaultRectify):
         
         neg_key_query_grdf = (neg_key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         pos_key_query_grdf = (pos_key_query_grdf.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        # testing/out
-        pos_key_query_grdf = self.vtestcase.testbot_out(pos_key_query_grdf)
+        
         pre_mask = (pre_mask.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
         weight = (weight.reshape(BATCH_SIZE,-1,height, width)[:,:,((height-h_zoom)//2):((height+h_zoom)//2),((width-w_zoom)//2):((width+w_zoom)//2)]).reshape(BATCH_SIZE,-1,h_zoom, w_zoom)
-        # testing/input
-        self.vtestcase.testbot_input(n_flow.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_x_flow.npy")
-        self.vtestcase.testbot_input(y_flow.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_y_flow.npy")
+
         
         target_2Dr = target_2Dr.reshape(BATCH_SIZE,1,h_zoom, w_zoom)
         
@@ -292,7 +282,6 @@ class FUTRectify(DefaultRectify):
         weights_grdf = (1.-2.*(weights<0.).float().detach())*weight_grdf*3e-1*(y_flow==1.).detach().float()*(weight>0.).detach().float()+torch.where(pre_mask>specials.OFF_THRESH, pre_mask_grdf*3e0*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()), -pre_mask_grdf*1e1*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float()))*(1.-(y_flow==1.).detach().float()) + (1.-2.*(weights<0.).float().detach())*torch.where(n_flow.detach()>1.,neg_key_query_grdf*3e-1*(1.-n_flow/torch.max(n_flow)).detach(),pos_key_query_grdf*coord_flow.detach())*(target_2Dr>specials.OFF_THRESH).detach().float()
         weights = weights.detach() + weights_grdf # apply attractive rectification for this implementation
         #######################
-        self.vtestcase.testbot_input(weights.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_output.npy")
         
         return weights
     

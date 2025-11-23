@@ -61,6 +61,8 @@ class SMap(torch.nn.Module):
         self.rectify_module = rectify.DefaultRectify(self.smap3x3)
         if rectify_type==rectify.types.CAM:
             self.rectify_module = rectify.CAMRectify(self.smap3x3)
+        if rectify_type==rectify.types.DEP:
+            self.rectify_module = rectify.DEPRectify(self.smap3x3)
     
     def calculate_weights(self, new_x_z_mask_value, original_size=None):
         BATCH_SIZE, height, width = new_x_z_mask_value.shape[0], new_x_z_mask_value.shape[-2], new_x_z_mask_value.shape[-1]

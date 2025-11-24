@@ -5,7 +5,7 @@ from enum import Enum, auto
 class types(Enum):
     DEF = auto()
     CAM = auto()
-    FUT = auto()
+    DEP = auto()
 
 class DefaultRectify(torch.nn.Module):
     def __init__(self, smap3x3):
@@ -171,9 +171,9 @@ class CAMRectify(DefaultRectify):
         
         return weights
         
-class FUTRectify(DefaultRectify):
+class DEPRectify(DefaultRectify):
     def __init__(self, smap3x3):
-        super(FUTRectify, self).__init__(smap3x3)
+        super(DEPRectify, self).__init__(smap3x3)
         self.smap3x3 = smap3x3
         from tools.testing.vtest.vtest_types import TestBot_In_3_3, TestBot_Out_3_3, TestBot_Input_3_3, TestBot_Target, TestCase
         self.vtestcase = TestCase(name=f"SMap_Z", testbot_in=TestBot_In_3_3(), testbot_out=TestBot_Out_3_3(), testbot_input=TestBot_Input_3_3(), testbot_target=TestBot_Target(), out_path="./")

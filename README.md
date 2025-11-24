@@ -55,11 +55,17 @@ The core ideas are formally presented in our research paper. We introduce a gene
 
 ## Applications & Demos
 
-* **Camera Calibration:** Camera calibration as a **[Perspective-n-Image](https://medium.com/@thienan092/from-pni-camera-calibration-to-monocular-3d-scene-reconstruction-part-i-what-is-c80879815e55)** solver. 
+* **Camera Calibration:** Using a **[Perspective-n-Image](https://medium.com/@thienan092/from-pni-camera-calibration-to-monocular-3d-scene-reconstruction-part-i-what-is-c80879815e55) solver** approach. 
   - You can explore the implementation, which uses the **[Sky-dataset](https://github.com/thienannguyen-cv/Sky-dataset)**, in the [Jupyter Notebook](https://github.com/thienannguyen-cv/SMap/blob/main/applications/Camera%20Calibration/camera-calibration.ipynb).
   - For a quick look at the application, see the interactive demo below.
 
   [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=github)](https://thienannguyen-cv.github.io/cab-viz/)
+
+* **Depth Estimation:** Based on reconstructing **a single, Platonic 3D model** that accounts for all its projections.
+  - You can explore the implementation, which uses the **[12Lamp-dataset](https://github.com/thienannguyen-cv/Lamp-dataset)**, in the [Jupyter Notebook](https://github.com/thienannguyen-cv/SMap/blob/main/applications/Depth%20Estimation/depth-estimation.ipynb).
+  - For a quick look at the application, see the interactive demo below.
+
+  [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=github)](https://thienannguyen-cv.github.io/dep-viz/)
 
 ## Setup & Installation
 

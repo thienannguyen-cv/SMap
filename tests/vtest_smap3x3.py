@@ -54,10 +54,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         # testing/in
         input_repr_x = self.vtestcase.testbot_in(input_repr_x, input_mask)
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape)
+        weights = weights.reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(BATCH_SIZE, -1).sum(dim=1)
 
@@ -120,10 +121,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
         pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape)
+        weights = weights.reshape(1,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(BATCH_SIZE, -1).sum(dim=1)
 
@@ -176,10 +178,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         # testing/in
         input_repr_y = self.vtestcase.testbot_in(input_repr_y, input_mask)
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape)
+        weights = weights.reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(BATCH_SIZE, -1).sum(dim=1)
 
@@ -243,10 +246,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
         pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape)
+        weights = weights.reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(BATCH_SIZE, -1).sum(dim=1)
 
@@ -302,10 +306,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         # testing/in
         input_mask = self.vtestcase.testbot_in(input_mask, input_mask)
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, target_repr, self.input_mask.shape)
+        weights = weights.reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(BATCH_SIZE, -1).sum(dim=1)
 
@@ -376,10 +381,11 @@ class SMap3x3VTestCase(unittest.TestCase):
         weights = self.smap.smap3x3(input_repr_x, input_repr_y, input_repr_z, input_mask, self.panel, self.input_mask.shape)
         weights = self.smap.calculate_weights(weights)
         pre_x, pre_y, pre_z, pre_mask, panels, weights = self.smap.smap3x3.go(weights[:,None,:,:,:], self.input_mask.shape)
-        weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape).reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
+        target_2Dr, weights = self.smap.rectify_module.rectificate_flow(weights, pre_x, pre_y, pre_z, pre_mask, panels, target_repr, self.input_mask.shape)
+        weights = weights.reshape(BATCH_SIZE,-1, self.input_mask.shape[0], self.input_mask.shape[1])
         # testing/out
         weights = torch.abs(self.vtestcase.testbot_out(weights)+1e-7)
-        loss_m = torch.abs(weights-target_repr)
+        loss_m = torch.abs(weights-target_2Dr)
     
         loss_m = loss_m.reshape(1, -1).sum(dim=1)
 

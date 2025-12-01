@@ -189,7 +189,7 @@ class SMapUTestCase(unittest.TestCase):
         input_repr = (z*input_mask)
         input_repr = utils.to_3d(input_repr.reshape(BATCH_SIZE,1, self.img_shape[0], self.img_shape[1]), self.img_shape[0], self.img_shape[1], self.panel, self.img_shape, self.img_shape, self.smap3x3.camera_matrix_inv, self.device).reshape(BATCH_SIZE,3, self.img_shape[0], self.img_shape[1])
         
-        actual = self.smap(torch.cat([input_repr, input_mask], dim=1), None, zoom)
+        _, actual = self.smap(torch.cat([input_repr, input_mask], dim=1), None, zoom)
         actual = (actual[:,-1,:,:]).detach().cpu().numpy().reshape(self.img_shape[0], self.img_shape[1])
         
         expected_activated_coords = np.where(mask>0.)

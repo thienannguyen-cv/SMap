@@ -1,5 +1,7 @@
 <h1 align="center">
-<img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300">
+  <a href="https://github.com/thienannguyen-cv/SMap">
+    <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300">
+  </a>
 </h1><br>
 
 # SMap: Spatial Mapping for Dynamic 3D Inference

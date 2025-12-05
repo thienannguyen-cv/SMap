@@ -100,16 +100,19 @@ class TestBot_Input_3_3(torch.nn.Module):
         self.name = name
         self.module.register_backward_hook(get_activation_grad(self.name))
         
-    def forward(self, x):
-        C_zoom, h, w = ((x.shape[1])//(3*3)), (x.shape[-2]), (x.shape[-1])
+    def forward(self, x, file_name="_input_representation.npy", dim=3):
+        C_zoom, h, w = (x.shape[1]), (x.shape[-2]), (x.shape[-1])
+        target_representation_shape = self.testcase.testbot_target.target_representation.shape
+        H_target, W_target = (target_representation_shape[-2]), (target_representation_shape[-1])
+        H_orig, W_orig = self.testcase.orig_shape
+        H_diff, W_diff = 0, 0
         if utils.DEBUG_FLAG:
-            H_orig, W_orig = self.testcase.orig_shape
             H_diff, W_diff = ((h-H_orig)//2), ((w-W_orig)//2)
             print(x.shape)
-            print(f"input[4,0,0,0] = {(x[0,:,H_diff:(h-H_diff),W_diff:(w-W_diff)]).reshape(C_zoom,(3*3),h,w).permute(1,0,2,3)[4,0,0,0]}")
+            print(f"input[4,0,0,0] = {(x[0,:,H_diff:(h-H_diff),W_diff:(w-W_diff)]).reshape(C_zoom,-1,h,w).permute(1,0,2,3)[4,0,0,0]}")
         C_zoom_2 = int(np.sqrt(C_zoom))
         current_zoom = int(np.log2(C_zoom_2))
-        x = (x[0,:,:,:]).reshape(C_zoom,3*3,h,w).permute(1,0,2,3)
+        x = (x[0,:,:,:,:]).reshape(C_zoom,-1,h,w).permute(1,0,2,3)
         for i in range(current_zoom):
             C_zoom_2 = (C_zoom_2//2)
             x = x.reshape(-1,C_zoom_2,2,C_zoom_2,2,h,w).permute(0,1,3,5,2,6,4)
@@ -119,10 +122,13 @@ class TestBot_Input_3_3(torch.nn.Module):
         self.input_representation = x.detach().cpu().numpy()
         
         if self.testcase is None:
-            np.save(self.testcase.out_path+"input_representation.npy", self.input_representation)
+            np.save(self.testcase.out_path+file_name, self.input_representation)
         else:
-            np.save(self.testcase.out_path+self.testcase.name+"_input_representation.npy", self.input_representation)
-        
+            H_diff, W_diff = ((h-H_target)//2), ((w-W_target)//2)
+            if dim==4:
+                np.save(self.testcase.out_path+self.testcase.name+file_name, self.input_representation[np.newaxis, :, H_diff:(H_diff+H_target), W_diff:(W_diff+W_target)])
+            else:
+                np.save(self.testcase.out_path+self.testcase.name+file_name, self.input_representation[:, H_diff:(H_diff+H_target), W_diff:(W_diff+W_target)])
         return self.module(x)
     
 class TestBot_Target(torch.nn.Module):
@@ -190,7 +196,8 @@ class TestBot_In_3_3(torch.nn.Module):
                         H_out, W_out = H_out*2, W_out*2
                         grad_in = grad_in.reshape(-1,C_zoom_2,C_zoom_2,H_out,W_out)
                     H_diff, W_diff = ((H_out-H_target)//2), ((W_out-W_target)//2)
-                    grad_in = (grad_in.reshape(-1,H_out, W_out)[:,H_diff:(-H_diff),W_diff:(-W_diff)]).reshape(-1,H_target, W_target)
+                    
+                    grad_in = (grad_in.reshape(-1,H_out, W_out)[:,H_diff:(H_out-H_diff),W_diff:(W_out-W_diff)]).reshape(-1,H_target, W_target)
                     
                     self.testcase.activation_gradients[name] = grad_in.cpu().numpy()
                     
@@ -250,6 +257,7 @@ class TestBot_Out_3_3(torch.nn.Module):
                     grad_out = grad_out.reshape(-1,H_out, W_out)
                     
                     self.testcase.activation_gradients[connet2name] = grad_out.cpu().numpy()
+                    np.save(self.testcase.out_path+self.testcase.name+'_gradient_flow.npy', grad_out.cpu().numpy()[np.newaxis, :, :, :])
                     
                     self.testcase.gradient_flows[(name, connet2name)] = None
             return hook

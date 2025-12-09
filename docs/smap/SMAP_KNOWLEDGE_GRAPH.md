@@ -1,6 +1,6 @@
 # SMap Knowledge Graph
 
-This knowledge graph is designed to help readers understand the functional structure of `smap.py`, the relationships between its core components, and how the unittests relate to the module's correctness. The graph demonstrates how data and computation flow through the system, highlighting both the architectural logic and the verification points via test cases.
+This knowledge graph is designed to help readers understand the functional structure of `smap.py`, the relationships between its core components, and how the unit-tests relate to the module's correctness. The graph demonstrates how data and computation flow through the system, highlighting both the architectural logic and the verification points via test cases.
 
 ------------------------------------------------------------------------
 
@@ -112,9 +112,9 @@ graph TD
 | SMap.forward | test_SMap_forward, vtest_smap3x3.py | Global correctness of spatial mapping |
 | SMap3x3.forward | test_SMap_forward, vtest_smap3x3.py | 3x3 local mapping logic |
 | SMap3x3.calculate_key_query | test_to_3d3x3, indirectly via forward | Key-query computation, 3D logic |
-| DefaultRectify..compute_allow_matrix | test_prepare_flows_for_coord/mask | Correct flow mask logic |
-| DefaultRectify..prepare_flows_for_coord | test_prepare_flows_for_coord | Flow logic for coordinates |
-| DefaultRectify..prepare_flows_for_mask | test_prepare_flows_for_mask | Flow logic for mask activations |
+| DefaultRectify.compute_allow_matrix | test_prepare_flows_for_coord/mask | Correct flow mask logic |
+| DefaultRectify.prepare_flows_for_coord | test_prepare_flows_for_coord | Flow logic for coordinates |
+| DefaultRectify.prepare_flows_for_mask | test_prepare_flows_for_mask | Flow logic for mask activations |
 | SMap.calculate_weights | test_SMap_forward, test_agg\_\* | Aggregation and selection logic |
 | rectificate_flow | vtest_smap3x3.py | Gradient, learning consistency |
 | utils.agg | test_agg_factor_only, test_agg_ind | Core aggregation utility logic |
@@ -145,8 +145,15 @@ graph TD
 
 ------------------------------------------------------------------------
 
-## 7. Conclusion
+# Principles
 
-This knowledge graph illustrates how the SMap architecture is both modular and test-driven. Each core computational unit is explicitly tested for both correctness and robustness (including gradient propagation), ensuring that any user or developer can trust the spatial mapping logic as both mathematically and programmatically sound.
+### DefaultRectify
+
+**Steady State:**\
+- **Mask:**: Only one active point across for each active point in the target. 
+- **Coordinate:**: 
+
+**Recurrent State:**\
+- **Mask:**: Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
 
 ------------------------------------------------------------------------

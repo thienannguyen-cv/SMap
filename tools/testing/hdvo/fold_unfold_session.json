@@ -1,0 +1,16 @@
+{
+  "numChannels": 1,
+  "inputSize": 5,
+  "outputGridSize": 5,
+  "inputGridData": "SMap_Z_in.npy",
+  "rawComponentSlidesData": "SMap_Z_out.npy",
+  "targetGridData": "SMap_Z_target.npy",
+  "userDefinedGradientFlows": "SMap_Z_gradient_flow.npy",
+  "aiFunctionBody": "return allChannelsSliceValuesAtOutputCell.map((sliceValuesInChannel, channelIndex) =>\n    sliceValuesInChannel.map((sliceValue) => {\n        const targetValue = allChannelsTargetValuesAtOutputCell[channelIndex];\n        return sliceValue - targetValue;\n    })\n);",
+  "userHint": "Về tổng quan, cơ chế fold/unfold đã mang một điểm ở vị trí lân cận đến vị trí mà nó nên được hiển thị (tức là vị trí đang được so sánh với mục tiêu). Như vậy, gradient ở đây chính là gradient cho điểm tương ứng với vị trí hiện tại so với vị trí gốc (thể hiện qua thứ tự của điểm trong một slice, slice 0 tương ứng với việc dịch chuyển một ô lên phía trên về bên trái, slice 8 tương ứng với việc dịch chuyển xuống dưới và về bên phải, các slice khác có thể suy ngược ra vị trí dịch chuyển). Tuy nhiên, cũng cần biết rằng mục tiêu đang được so sánh chưa phải là vị trí cuối cùng của điểm (tức vị trí thực tế, ground truth) nhưng thông qua quá trình huấn luyện mà điểm sẽ dần đi về vị trí thực tế của nó như một quá trình khử nhiễu khi điểm (gần như chắc chắn) sẽ đạt được trạng thái dừng của Markov chain tương ứng với phân phối có thể được dùng để mô tả trạng thái di chuyển của điểm trong quá trình huấn luyện. ",
+  "userHint": "Chức năng hiện tại trả về 0 cho tất cả các trường hợp khi giá trị mục tiêu là 1. Hãy xem xét lại các giá trị trả về cho 'targetValue === 1' để đảm bảo gradient được áp dụng khi một tấm cần được kích hoạt, đặc biệt là xem xét lại các trường hợp mà bình luận trong code chỉ rõ cần một gradient dương. Về tổng quan, cơ chế fold/unfold đã mang một điểm ở vị trí xung quanh đến vị trí mà nó nên được hiển thị (tức là vị trí đang được so sánh với mục tiêu). Như vậy, gradient ở đây chính là gradient cho tọa độ của điểm trong không gian 3 chiều tương ứng với vị trí hiện tại so với vị trí gốc (thể hiện qua thứ tự của điểm trong một slice). Tuy nhiên, cũng cần biết rằng mục tiêu đang được so sánh chưa phải là vị trí cuối cùng của điểm (tức vị trí thực tế, ground truth) nhưng thông qua quá trình huấn luyện mà điểm sẽ dần đi về vị trí thực tế của nó như một quá trình khử nhiễu khi điểm (gần như chắc chắn) sẽ đạt được trạng thái dừng của Markov chain tương ứng với phân phối có thể được dùng để mô tả trạng thái di chuyển của điểm trong quá trình huấn luyện. ",
+  "comparisonMode": "tolerance",
+  "toleranceEpsilon": 0.00001,
+  "conditionalBlockX": "SMap_Z_x.npy",
+  "conditionalBlockY": "SMap_Z_y.npy"
+}

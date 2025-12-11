@@ -6,7 +6,7 @@ This knowledge graph is designed to help readers understand the functional struc
 
 ## 1. Key Components and Functions in `smap.py`
 
-**Nodes:** - **SMap (nn.Module)** - Main entry point for spatial mapping operations. - **SMap3x3 (nn.Module)** - Core for 3x3 neighborhood processing. - **flip (function)** - Utility for tensor dimension flipping. - **compute_allow_matrix (method, DefaultRectify)** - Computes allowed spatial flows. - **prepare_flows_for_mask (method,DefaultRectify)** - Prepares flows for mask-based activation. - **prepare_flows_for_coord (method, DefaultRectify)** - Prepares flows for coordinate-based activation. - **calculate_weights (method, SMap)** - Aggregates and selects weights for output. - **rectificate_flow (method,** DefaultRectify**)** - Applies rectification logic and computes final flows and gradients. - **forward (method, SMap and SMap3x3)** - Performs the main forward/inference pass. - **calculate_key_query (method, SMap3x3)** - Calculates matching between keys and queries for 3D mapping. - **go (method, SMap3x3)** - Adds padding and prepares batch for processing. - **utils, specials** - Utility and special constant modules.
+**Nodes:** - **SMap (nn.Module)** - Main entry point for spatial mapping operations. - **SMap3x3 (nn.Module)** - Core for 3x3 neighborhood processing. - **flip (function)** - Utility for tensor dimension flipping. - **compute_allow_matrix (method, DefaultRectify)** - Computes allowed spatial flows. - **prepare_flows_for_mask (method,DefaultRectify)** - Prepares flows for mask-based activation. - **prepare_flows_for_coord (method, DefaultRectify)** - Prepares flows for coordinate-based activation. - **calculate_weights (method, SMap)** - Aggregates and selects weights for output. - **rectificate_flow (method, DefaultRectify)** - Applies rectification logic and computes final flows and gradients. - **forward (method, SMap and SMap3x3)** - Performs the main forward/inference pass. - **calculate_key_query (method, SMap3x3)** - Calculates matching between keys and queries for 3D mapping. - **go (method, SMap3x3)** - Adds padding and prepares batch for processing. - **utils, specials** - Utility and special constant modules.
 
 ------------------------------------------------------------------------
 
@@ -90,7 +90,7 @@ graph TD
 -   **test_agg_factor_only**, **test_agg_ind** (utest_smap3x3.py)
     -   Validate: `utils.agg`
     -   Ensure aggregation logic for weights and indexing works as intended.
--   \*\*test_in\_\*\_stage\*\* (vtest_smap3x3.py)
+-   **test_in\_\*\_stage** (vtest_smap3x3.py)
     -   Validate: Gradient propagation and correctness in `SMap.rectificate_flow`, `SMap3x3.forward`
     -   These tests check that not only the forward but also the backward (gradient) logic is correct under various spatial scenarios (single and two-stage moves, x/y/r directions).
 
@@ -147,13 +147,16 @@ graph TD
 
 # Principles
 
-### DefaultRectify
+Essentially, the optimization process of SMap can be modeled as a Markov chain of two states, one **Recurrent State** and one **Steady State**. We can determine if the current status of the optimization process is in **Recurrent State** by checking the values of matrices returned by the functions `prepare_flows_for_mask` and `prepare_flows_for_coord`. If the current status of the optimization process is not in **Recurrent State**, it is in **Steady State**. Thus, we have the following principles: "The optimization process of SMap is only in **Steady State** if and only if for each active point in the target, there is only one active point in the output of SMap at the same location (i.e., one-to-one mapping). Otherwise, the optimization process is in **Recurrent State**."  
 
-**Steady State:**\
-- **Mask:**: Only one active point across for each active point in the target. 
-- **Coordinate:**: 
+## DefaultRectify
 
-**Recurrent State:**\
-- **Mask:**: Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
+### Steady State
+- **Mask:** Only one active point across for each active point in the target. 
+- **Coordinate:** The proper 2D representation of each active point in the target is exactly the same as the coordinate of the corresponding active point in the output.
+
+### Recurrent State
+- **Mask:** Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
+- **Coordinate:** The rest of cases that are not in Steady State. And, the case of a "non-steady" active point in the target around an non-active point in the ouput.
 
 ------------------------------------------------------------------------

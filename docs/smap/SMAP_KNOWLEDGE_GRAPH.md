@@ -147,13 +147,15 @@ graph TD
 
 # Principles
 
-### DefaultRectify
+Essentially, the optimization process of SMap can be modeled as a Markov chain of two states, one **Recurrent State** and one **Steady State**. We can determine if the current status of the optimization process is in **Recurrent State** by checking the values of matrices returned by the functions `prepare_flows_for_mask` and `prepare_flows_for_coord`. If the current status of the optimization process is not in **Recurrent State**, it is in **Steady State**. Thus, we have the following principles: "The optimization process of SMap is only in **Steady State** if and only if for each active point in the target, there is only one active point in the output of SMap at the same location (i.e., one-to-one mapping). Otherwise, the optimization process is in **Recurrent State**."  
 
-**Steady State:**\
+## DefaultRectify
+
+**Steady State:**
 - **Mask:**: Only one active point across for each active point in the target. 
 - **Coordinate:**: 
 
-**Recurrent State:**\
+**Recurrent State:**
 - **Mask:**: Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
 
 ------------------------------------------------------------------------

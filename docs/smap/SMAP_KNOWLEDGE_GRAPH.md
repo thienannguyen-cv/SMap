@@ -151,11 +151,12 @@ Essentially, the optimization process of SMap can be modeled as a Markov chain o
 
 ## DefaultRectify
 
-**Steady State:**
-- **Mask:**: Only one active point across for each active point in the target. 
-- **Coordinate:**: 
+### Steady State
+- **Mask:** Only one active point across for each active point in the target. 
+- **Coordinate:** The proper 2D representation of each active point in the target is exactly the same as the coordinate of the corresponding active point in the output.
 
-**Recurrent State:**
-- **Mask:**: Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
+### Recurrent State
+- **Mask:** Zero or more than one active point across for each active point in target. And, there no non-steady active point in the target around an non-active point in the ouput. 
+- **Coordinate:** The rest of cases that are not in Steady State. And, the case of a "non-steady" active point in the target around an non-active point in the ouput.
 
 ------------------------------------------------------------------------

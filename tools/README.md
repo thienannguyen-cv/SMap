@@ -74,4 +74,3 @@ HDVO models iterative optimization processes (like SMap) as a **Markov Chain (MC
 * **Physical Entity Aggregation (MC Comp 1):** How information from multiple possible positions is unified into a consistent state for a single physical point.
 * **Gradient Gating (MC Comp 2):** The mechanism for opening/closing gradient flow to control the point's movement or stability.
 * **Denoising & Stationary State (MC Comp 3):** Modeling the optimization process as a gradual denoising path towards the final, stable position (Stationary State of the MC).
-* 

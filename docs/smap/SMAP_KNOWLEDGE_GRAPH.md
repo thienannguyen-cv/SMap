@@ -90,7 +90,7 @@ graph TD
 -   **test_agg_factor_only**, **test_agg_ind** (utest_smap3x3.py)
     -   Validate: `utils.agg`
     -   Ensure aggregation logic for weights and indexing works as intended.
--   \*\*test_in\_\*\_stage\*\* (vtest_smap3x3.py)
+-   **test_in\_\*\_stage** (vtest_smap3x3.py)
     -   Validate: Gradient propagation and correctness in `SMap.rectificate_flow`, `SMap3x3.forward`
     -   These tests check that not only the forward but also the backward (gradient) logic is correct under various spatial scenarios (single and two-stage moves, x/y/r directions).
 

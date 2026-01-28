@@ -392,6 +392,6 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
 
 #### Bước 6: Hỗ trợ Ngữ nghĩa Kịch bản bằng AI
 
-* **Mục tiêu:** Sử dụng [**Kiến trúc HDVO**](../tools/hdvo/README.txt) để kiểm tra chéo (cross-validate) sự **nhất quán logic** giữa *Gradient Chuẩn* và *Giả thiết Ngữ nghĩa* đã được mã hóa.
+* **Mục tiêu:** Sử dụng [**Kiến trúc HDVO**](../../tools/testing/hdvo/README.md) để kiểm tra chéo (cross-validate) sự **nhất quán logic** giữa *Gradient Chuẩn* và *Giả thiết Ngữ nghĩa* đã được mã hóa.
 
 ------------------------------------------------------------------------

@@ -331,7 +331,7 @@ Tests backward gradient propagation for two-stage mask (r) transformations.
 
 # Debug Gradients and Create Test Case with vtest Tool
 
-Although, in theory, the optimization process of a single point using SMap permits actions independent of its position on the 2D representation. In practice, the complexity comes from maintaining this optimization behavior across multiple configurations of its 3x3 neighborhoods when more than one active point on the 2D representation is located within that area, or when the single point being optimized is at the edge of the image. The `vtest` tool is developed to help debug and create test cases for these scenarios.
+Although, in theory, the optimization process of a single point using SMap permits actions independent of its position on the 2D representation. In practice, the complexity comes from maintaining this optimization behavior across multiple configurations of its 3x3 neighborhoods (kernel) when more than one active point on the 2D representation is located within that area, or when the single point being optimized is at the edge of the image. The `vtest` tool is developed to help debug and create test cases for these scenarios.
 
 ## Debugging Gradients
 (Vietnamese)
@@ -356,9 +356,9 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
             # ... Đảm bảo thư mục output tồn tại ...
     ```
 
-#### 1.2. Chuẩn bị Tensor Đầu vào
+#### 1.2. Chuẩn bị các Tensor
 
-* **Mục tiêu:** Tạo tensor đầu vào và đầu ra, kích hoạt cờ `requires_grad=True`.
+* **Mục tiêu:** Tạo các tensor đầu vào và đầu ra, kích hoạt cờ `requires_grad=True` cho các tensor đầu vào cần tối ưu.
 
 #### Bước 2: Định nghĩa `TestCase` và Gắn `TestBot` (Cấy Sensor)
 
@@ -366,7 +366,7 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
 * **Mã nguồn tham khảo (Tích hợp `vtest_smap3x3.py` & `vtest_types.py`):**
     ```python
     # Bọc Module
-    smap_with_bot = TestBot_In(module=self.smap.map, offset_in=offset_in, name="in", connet2name="out")
+    smap_with_bot = TestBot_In(module=self.smap, offset_in=offset_in, name="in", connet2name="out")
     # Khởi tạo và Liên kết TestCase
     test_case = TestCase(name=testcase_name, testbot_in=smap_with_bot)
     ```

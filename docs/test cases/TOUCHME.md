@@ -76,7 +76,7 @@ Verifies that the `prepare_flows_for_coord` method correctly identifies valid an
 
 -   **Illustration:**
 
-    ![Value of matrices at the offset (1,1). Viz tool: vtest.](images/paste-1.png){width="560"}
+    <img src="images/paste-1.png" alt="Value of matrices at the offset (1,1). Viz tool: vtest." width="1560">
 
     ```         
     Input (target):
@@ -126,7 +126,7 @@ Verifies that the `prepare_flows_for_mask` method correctly identifies valid and
 
 -   **Illustration:**
 
-    ![Value of matrices at the offset (1,1). Viz tool: vtest.](images/paste-1.png){width="560"}
+    <img src="images/paste-1.png" alt="Value of matrices at the offset (1,1). Viz tool: vtest." width="1560">
 
 ```         
 Input (target):
@@ -331,19 +331,19 @@ Tests backward gradient propagation for two-stage mask (r) transformations.
 
 # Debug Gradients and Create Test Case with vtest Tool
 
-Although, in theory, the optimization process of a single point using SMap permits actions independent of its position on the 2D representation. In practice, the complexity comes from maintaining this optimization behavior across multiple configurations of its 3x3 neighborhoods when there are other points on the 2D representation or when the point is at the edge of the image. The `vtest` tool is developed to help debug and create test cases for these scenarios.
+Although, in theory, the optimization process of a single point using SMap permits actions independent of its position on the 2D representation. In practice, the complexity comes from maintaining this optimization behavior across multiple configurations of its 3x3 neighborhoods when more than one active point on the 2D representation is located within that area, or when the single point being optimized is at the edge of the image. The `vtest` tool is developed to help debug and create test cases for these scenarios.
 
 ## Debugging Gradients
-
+(Vietnamese)
 ## I. Quy Trình Sinh Dữ liệu Kiểm thử Gradient (Gold Standard Generation Workflow)
 
 Quy trình này là một chu trình lặp lại, tập trung vào việc tạo ra, thu thập, và sau đó **chỉnh sửa bằng tay** các tensor gradient thô để tạo thành **Dữ liệu Chuẩn (Gold Standard)**.
 
-### Triết lý Cốt lõi
+#### Triết lý Cốt lõi
 
 Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên **giá trị số** sang kiểm thử dựa trên **logic và ngữ nghĩa**, đảm bảo các ràng buộc nghiệp vụ (ví dụ: ràng buộc vị trí trong phép toán Fold/Unfold) được duy trì qua các phiên bản mã nguồn.
 
-### Bước 1: Chuẩn bị Kịch bản và Hiện thực hóa Unit Test
+#### Bước 1: Chuẩn bị Kịch bản và Hiện thực hóa Unit Test
 
 #### 1.1. Khởi tạo `unittest.TestCase` và Module
 
@@ -360,7 +360,7 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
 
 * **Mục tiêu:** Tạo tensor đầu vào và đầu ra, kích hoạt cờ `requires_grad=True`.
 
-### Bước 2: Định nghĩa `TestCase` và Gắn `TestBot` (Cấy Sensor)
+#### Bước 2: Định nghĩa `TestCase` và Gắn `TestBot` (Cấy Sensor)
 
 * **Mục tiêu:** Cấy các **`TestBot`** (`TestBot_In`, `TestBot_Out`) vào module mục tiêu. `TestBot` hoạt động như **Backward Hooks** của PyTorch để chặn và thu thập gradient trong quá trình lan truyền ngược.
 * **Mã nguồn tham khảo (Tích hợp `vtest_smap3x3.py` & `vtest_types.py`):**
@@ -371,7 +371,7 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
     test_case = TestCase(name=testcase_name, testbot_in=smap_with_bot)
     ```
 
-### Bước 3: Thực thi Lan truyền (Forward & Backward)
+#### Bước 3: Thực thi Lan truyền (Forward & Backward)
 
 * **Mục tiêu:** Kích hoạt quá trình tính toán để `TestBot` lưu trữ dữ liệu gradient thô (Raw Gradient Data).
     ```python
@@ -380,17 +380,17 @@ Triết lý của `vnittest` là chuyển đổi từ kiểm thử dựa trên *
     loss.backward() # Kích hoạt Backward Hooks -> Dữ liệu gradient THÔ được lưu trữ
     ```
 
-### Bước 4: Chỉnh sửa và Thẩm định Ngữ nghĩa Trực quan
+#### Bước 4: Chỉnh sửa và Thẩm định Ngữ nghĩa Trực quan
 
 * **Mục tiêu:** Sửa đổi các tensor gradient thô để chúng thỏa mãn các **ràng buộc ngữ nghĩa trực quan (Visual Semantic Constraints)**.
 * **Công cụ:** Sử dụng **`vnittest tool`** để trực quan hóa các lát cắt kernel và chỉnh sửa giá trị.
     
 
-### Bước 5: Lặp lại và Hoàn thiện Độ phủ (Coverage)
+#### Bước 5: Lặp lại và Hoàn thiện Độ phủ (Coverage)
 
 * **Mục tiêu:** Hoàn thiện bộ dữ liệu chuẩn bằng cách lặp lại quy trình cho các trường hợp biên, đảm bảo sự bao phủ toàn diện của các điều kiện kiểm thử.
 
-### Bước 6: Hỗ trợ Ngữ nghĩa Kịch bản bằng AI
+#### Bước 6: Hỗ trợ Ngữ nghĩa Kịch bản bằng AI
 
 * **Mục tiêu:** Sử dụng [**Kiến trúc HDVO**](../tools/hdvo/README.txt) để kiểm tra chéo (cross-validate) sự **nhất quán logic** giữa *Gradient Chuẩn* và *Giả thiết Ngữ nghĩa* đã được mã hóa.
 

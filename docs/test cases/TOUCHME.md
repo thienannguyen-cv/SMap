@@ -277,6 +277,27 @@ Gradients only at valid positions.
 **Describe:**\
 Tests backward gradient propagation when shifting mask along x direction.
 
+**Typical Example & Expected Output:**
+
+-   **Scenario:**
+
+    -   Image: 8x12, active pixel at (4,6).
+    -   The (only) target point is right-below the (only) active point ("below-right" case).
+
+-   **Input:**
+
+    -   `input_repr`: 1x1x8x12 tensor, only `input_repr[1,1,4,6]=1`
+    -   `target`: 8x12, `target[3,7]=1`
+
+-   **Expected:**
+
+    -   For the 'out' gradient flow, there is only one negative gradient at (3,7). For the 'in' gradient flow, only the parameter at (4,6) has a gradient.
+
+-   **Illustration:**
+
+    <img src="https://github.com/user-attachments/assets/028b0aa2-414f-44f7-b598-5407ab665de6" width="1560"/>
+
+
 ------------------------------------------------------------------------
 
 ### Test Case: `test_in_x_2st_stage`

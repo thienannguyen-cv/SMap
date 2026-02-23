@@ -286,7 +286,7 @@ Tests backward gradient propagation when shifting mask along x direction.
 
 -   **Input:**
 
-    -   `input_repr`: 1x1x8x12 tensor, only `input_repr[1,1,4,6]=1`
+    -   `input_mask`: 1x1x8x12 tensor, only `input_mask[1,1,4,6]=1`
     -   `target`: 8x12, `target[3,7]=1`
 
 -   **Expected:**
@@ -308,12 +308,35 @@ Final gradient is at the initial position if the chain of movements is valid.
 **Describe:**\
 Tests gradients for two-stage shifts along x.
 
+**Typical Example & Expected Output:**
+
+-   **Scenario:**
+
+    -   Image: 8x12, active pixel at (3,7).
+    -   Coord: has the equivalent value of a shift to position (4,6) ("below-right" case).
+    -   The (only) target point is above the (only) active point after the first-stage shift ("above" case).
+
+-   **Input:**
+
+    -   `input_mask`: 1x1x8x12 tensor, only `input_mask[1,1,3,7]=1`
+    -   `input_repr_*`: 1x1x8x12 tensor, only `input_repr[1,1,3,7]!=0`
+    -   `target`: 8x12, `target[5,6]=1`
+
+-   **Expected:**
+
+    -   For the 'out' gradient flow, there is only one negative gradient at (5,6). For the 'in' gradient flow, only the parameter at (3,7) has a gradient.
+
+-   **Illustration:**
+
+    <img src="https://github.com/user-attachments/assets/cc157d9a-0151-47fc-90a2-392f0dd3233a" width="1560" />
+
+
 ------------------------------------------------------------------------
 
 ### Test Case: `test_in_y_1st_stage`
 
 **Assure:**\
-Gradients only at valid positions (e.g. moving left/right).
+Gradients only at valid positions.
 
 **Describe:**\
 Tests backward gradient propagation when shifting mask along y direction.
@@ -326,7 +349,7 @@ Tests backward gradient propagation when shifting mask along y direction.
 Correct gradient at the initial position.
 
 **Describe:**\
-Tests gradients for two-stage shifts along y direction (e.g. left then right).
+Tests gradients for two-stage shifts along y direction.
 
 ------------------------------------------------------------------------
 
@@ -336,7 +359,7 @@ Tests gradients for two-stage shifts along y direction (e.g. left then right).
 Gradients are only at valid positions, including the "still" (no movement) case.
 
 **Describe:**\
-Tests backward gradient propagation for mask (r).
+Tests backward gradient propagation for mask.
 
 ------------------------------------------------------------------------
 
@@ -346,7 +369,7 @@ Tests backward gradient propagation for mask (r).
 Correct gradient at the initial position depending on movement sequence.
 
 **Describe:**\
-Tests backward gradient propagation for two-stage mask (r) transformations.
+Tests backward gradient propagation for two-stage mask transformations.
 
 ------------------------------------------------------------------------
 

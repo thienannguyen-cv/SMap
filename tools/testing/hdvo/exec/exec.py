@@ -197,7 +197,7 @@ def _generate_js_wrapper_for_grid_prediction(user_ai_function_body_str, conditio
     để xử lý toàn bộ lưới, trả về hàm bao đó.
     """
     # Trích xuất tham số của hàm AI gốc của người dùng
-    param_match = re.search(r'function\s*(\w*)\s*\(([^)]*)\)', user_ai_function_body_str) # Capture function name
+    param_match = re.search(r'^function\s*(\w*)\s*\(([^)]*)\)', user_ai_function_body_str) # Capture function name
     user_ai_param_names_for_inner_call = []
     user_func_name = "__user_ai_logic__" # Default internal name
     

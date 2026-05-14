@@ -1,9 +1,123 @@
-# THÔNG BÁO VÀ GIẤY PHÉP SỞ HỮU ĐỘC QUYỀN (PROPRIETARY LICENSE & NOTICE)
+# COPYRIGHT NOTICE AND LICENSE
 
-Tất cả các tệp mã nguồn trong thư mục này (tools/hdvo/core/) đều là tài sản trí tuệ độc quyền (**Proprietary Intellectual Property**) của Nguyễn Lê Thiện Ân.
+© 2025-2026 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). All Rights Reserved.
 
-Việc sử dụng, sao chép, sửa đổi, và phân phối các tệp này đều bị **nghiêm cấm**, trừ khi có sự cho phép bằng văn bản rõ ràng từ Nguyễn Lê Thiện Ân.
+---
 
-Các tệp này chứa Logic Nghiệp vụ Cốt lõi và Giả thiết Ngữ nghĩa, được coi là **Bí mật Thương mại** (Trade Secrets).
+## 1. SCOPE
 
-© 2025 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). Mọi Quyền được Bảo lưu (All Rights Reserved).
+This license applies to all contents within the directory `tools/testing/hdvo/` and its subdirectories (hereinafter "Reference Materials"), including source code, documentation, configuration files, and examples.
+
+---
+
+## 2. COPYRIGHT
+
+The Reference Materials are copyrighted works of Nguyễn Lê Thiện Ân, protected automatically under the Berne Convention for the Protection of Literary and Artistic Works and the Intellectual Property Law of Vietnam. All rights not expressly granted herein are reserved.
+
+---
+
+## 3. TRADEMARK
+
+**HDVO™** is a trademark of Nguyễn Lê Thiện Ân, asserted under common law trademark rights through continuous public use since 2025. The mark designates the framework and related products and services originating from the rightful owner.
+
+First documented use: 2025, including but not limited to:
+- Public Medium publication describing the framework
+- Public GitHub repository hosting reference materials
+- Public web application at hdvo.vercel.app
+
+The owner reserves the right to seek formal trademark registration in any jurisdiction at any future time. The absence of registered status as of the date of this license does not waive any rights in the mark.
+
+---
+
+## 4. TRADE SECRET SCOPE
+
+This public repository contains only the **reference architecture** and descriptive documentation. The production implementation — including prompt orchestration, API integration logic, hyperparameter configurations, internal evaluation rubrics, and performance optimizations — is maintained as **trade secret** in separate, non-public repositories and is NOT included herein.
+
+Trade secret status is claimed ONLY for non-public materials and does NOT apply to the Reference Materials in this repository.
+
+---
+
+## 5. PERMITTED USES
+
+### 5.1. Academic and Research Use
+
+The following uses are PERMITTED without prior written permission:
+
+- Citation of "HDVO" in academic papers, theses, dissertations, conference proceedings, textbooks, and technical writing.
+- Description, analysis, comparison, critique, and discussion of HDVO in educational contexts.
+- Reading, studying, and discussing the Reference Materials for educational purposes.
+- Replication of experiments for non-commercial research purposes.
+- Use of the HDVO name in academic lectures, slides, and presentations.
+- Open peer review and academic critique.
+- Inclusion in survey papers, literature reviews, and comparative studies.
+
+### 5.2. Personal Use
+
+Individuals may download and read the Reference Materials for personal self-learning, provided that no redistribution occurs.
+
+---
+
+## 6. NOMINATIVE FAIR USE
+
+References to "HDVO" as the name of the framework — for the purpose of discussion, comparison, critique, or description — fall under nominative fair use and do NOT require permission, provided that:
+
+1. The reference is **accurate** and not misleading;
+2. **No claim** of affiliation, endorsement, or sponsorship is made; and
+3. The use does not imply origin from anyone other than the rightful owner.
+
+---
+
+## 7. RESTRICTED USES
+
+The following activities REQUIRE prior written permission from the rightful owner:
+
+- Commercial use of the "HDVO" mark for goods or services.
+- Distribution of the Reference Materials, modified or unmodified, for commercial purposes.
+- Creation of a competing commercial product using the "HDVO" name or derivatives thereof.
+- Claims of affiliation, endorsement, or origin from the owner.
+- Use of the mark in domain names, app store listings, or business names.
+- Use in advertising or marketing of unrelated products or services.
+- Copying, distributing, or modifying source code for production use.
+- Creating derivative works for commercial purposes.
+- Sublicensing of any rights granted herein.
+
+---
+
+## 8. COMMERCIAL LICENSING
+
+For commercial use, including but not limited to building products or services that use the HDVO name or repository contents, please contact:
+
+**Email**: thienannguyen.cv@gmail.com
+
+Reasonable licensing terms are available for legitimate commercial purposes.
+
+---
+
+## 9. NO WARRANTY
+
+The Reference Materials are provided "AS IS", without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement. The owner shall not be liable for any damages arising from use of the Reference Materials.
+
+---
+
+## 10. GOVERNING LAW
+
+This license is governed by the laws of the Socialist Republic of Vietnam, consistent with international treaties to which Vietnam is a party, including the Berne Convention for the Protection of Literary and Artistic Works, the TRIPS Agreement, and the Paris Convention for the Protection of Industrial Property.
+
+---
+
+## 11. RESERVATION OF RIGHTS
+
+No provision of this license shall be construed as a waiver of any rights, including but not limited to the right to seek statutory registration of trademarks, copyrights, or other intellectual property at any future time, or to pursue any remedies available under applicable law for unauthorized use of the Reference Materials or the HDVO mark.
+
+---
+
+## 12. INTERPRETATION AND SEVERABILITY
+
+If any provision of this license is held invalid or unenforceable by a court of competent jurisdiction, the remaining provisions shall remain in full force and effect.
+
+The headings used in this license are for convenience only and shall not affect interpretation.
+
+---
+
+© 2025-2026 Nguyễn Lê Thiện Ân. All Rights Reserved.
+HDVO™ is a trademark of Nguyễn Lê Thiện Ân, asserted under common law.

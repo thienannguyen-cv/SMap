@@ -1,15 +1,3 @@
-# PROPRIETARY LICENSE / DISCLAIMER
-
-All source code files in this directory (`tools/hdvo/core/`) are the **Proprietary Intellectual Property** of Nguyễn Lê Thiện Ân.
-
-The use, copying, modification, and distribution of these files are strictly prohibited, except with explicit written permission from Nguyễn Lê Thiện Ân.
-
-These files contain Core Business Logic and Semantic Hypotheses, which are considered **Trade Secrets**.
-
-**© 2025 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). All Rights Reserved.**
-
----
-
 # HDVO Architecture: AI Semantic-Aided Model
 
 The **Human-in-the-Loop Hypothesis-Driven Validation and Optimization (HDVO)** architecture is the framework behind applications like the [`Fold/Unfold app`](https://hdvo.vercel.app/) and the `Prediction/Optimization app`.
@@ -102,3 +90,22 @@ The HDVO Framework addresses **The Semantic Gap** that current industry standard
 | **Positional Consistency Check** | **Positional Constraint Validation:** Verifies that computations do not violate physical or logical positional constraints within the grid. | *[New Example]* |
 | **Boundary Hypothesis Validation** | **Encoding logic rules defining classification boundaries.** Uses HDVO to check if model decisions violate defined logical boundaries. | *[New Example]* |
 | **Post-processing Logic Audit** | **Logic Data Flow Check:** Verifies that post-processing functions (e.g., denoising, threshold normalization) comply with complex logical conditions encoded in L1. | *[New Example]* |
+
+---
+
+## License & Intellectual Property
+
+© 2025-2026 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). All Rights Reserved.
+
+**HDVO™** is a trademark of Nguyễn Lê Thiện Ân, asserted under common law trademark rights.
+
+The Reference Materials in this directory are governed by the terms in [`LICENSE`](./LICENSE).
+
+**Quick summary** (full terms in LICENSE):
+
+- **Academic and research use is freely permitted**, including citation in papers, theses, lectures, and non-commercial replication of experiments. See LICENSE Section 5 for details.
+- **Commercial use requires prior written permission**. Contact: thienannguyen.cv@gmail.com. See LICENSE Section 7 for restricted uses.
+- **Nominative fair use applies**: referring to "HDVO" by name for discussion, comparison, or critique does not require permission, provided the reference is accurate and no affiliation is implied. See LICENSE Section 6.
+- This public repository contains the **reference architecture only**. The production implementation is maintained as trade secret in non-public repositories. See LICENSE Section 4.
+
+For the complete terms, including all permitted uses, restrictions, warranties, and governing law, refer to [`LICENSE`](./LICENSE).

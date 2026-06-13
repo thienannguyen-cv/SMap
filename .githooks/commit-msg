@@ -1,0 +1,26 @@
+#!/bin/sh
+
+subject=$(sed -n '1p' "$1" | tr -d '\r')
+
+case "$subject" in
+  Merge\ *|Revert\ *) exit 0 ;;
+esac
+
+pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9][a-z0-9-]*\))?!?: .+'
+
+if ! printf '%s\n' "$subject" | grep -Eq "$pattern"; then
+  cat <<'MSG'
+Invalid commit subject.
+
+Expected:
+  type(scope): subject
+
+Allowed types:
+  build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test
+
+Examples:
+  feat(core): add DEPRectify support
+  docs(hdvo): align license terms and README notice
+MSG
+  exit 1
+fi

@@ -1,6 +1,6 @@
 <h1 align="center">
   <a href="https://github.com/thienannguyen-cv/SMap">
-    <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300">
+    <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="1024">
   </a>
 </h1><br>
 

@@ -90,33 +90,6 @@ For larger commits, the body should answer three questions:
 - What state or behavior does it preserve?
 - What tradeoff or resolution should future reviewers know about?
 
-## Signing Rules
-
-All new commits on the main branch should be signed with this GPG key:
-
-```text
-685C0F023DA361CC
-```
-
-Configure Git to sign commits by default:
-
-```bash
-git config user.signingkey 685C0F023DA361CC
-git config commit.gpgsign true
-```
-
-Verify the latest commit:
-
-```bash
-git log -1 --format="%h %G? %GK %GS %s"
-```
-
-Expected result for new commits:
-
-```text
-<hash> G 685C0F023DA361CC Thien An L. Nguyen <thienannguyen.cv@gmail.com> <subject>
-```
-
 ## Verification
 
 Before pushing, run at least the unit tests:
@@ -124,19 +97,6 @@ Before pushing, run at least the unit tests:
 ```bash
 python -m unittest discover -s tests -p "[vu]test*.py"
 ```
-
-## Local Hook
-
-The repository can use the commit-message hook in `.githooks/commit-msg`.
-
-Enable it with:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-This hook only validates the subject against Conventional Commits. Verify the
-GPG signature separately with `git log --format` as shown above.
 
 ## CI/CD
 

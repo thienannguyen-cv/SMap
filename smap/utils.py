@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from smap import specials
 
 DEBUG_FLAG = False
 
@@ -9,41 +10,58 @@ def flip(x, dim):
              else torch.arange(x.size(i)-1, -1, -1).long()
              for i in range(x.dim()))]
 
-def to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix_inv, device):
-    y_im, x_im = panels
-    y_im, x_im = torch.from_numpy(y_im).reshape(height, width), torch.from_numpy(x_im).reshape(height, width)
+def to_3d_torch(z, height, width, y_im, x_im, original_size, window_size, camera_matrix_inv, device):
     y_im = y_im * window_size[0] / original_size[0]
     x_im = x_im * window_size[1] / original_size[1]
-    y_im, x_im = y_im.to(device), x_im.to(device)
+    imp_co = torch.cat([torch.einsum('bhw,bczhw->bczhw', x_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.einsum('bhw,bczhw->bczhw', y_im.float(), torch.ones_like(z.unsqueeze(2)).float())], 2)
+    imp_co = torch.cat([imp_co, torch.ones_like(imp_co[:,:,:1,:,:])],dim=2)
+    imp_co = torch.nn.functional.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(imp_co.size(0),imp_co.size(1),3,3*3,height,width)
+
+    imp_co = torch.einsum('bchw,bczshw->bczshw', z.float(), imp_co.float()).reshape(imp_co.size(0),imp_co.size(1),3,3*3,-1)
+
+    regr_co = torch.einsum('xz,yz->xy', imp_co.reshape(imp_co.size(0),imp_co.size(1),3,-1).permute(0,1,3,2).reshape(-1,3).float(), camera_matrix_inv.float())
+    regr_co = regr_co.reshape(imp_co.size(0),imp_co.size(1),-1,3)
+    return regr_co
+
+def to_3d3x3_torch(z, height, width, y_im, x_im, original_size, window_size, camera_matrix_inv, device):
+    y_im, x_im = y_im.reshape(height, width), x_im.reshape(height, width)
+    y_im = y_im * window_size[0] / original_size[0]
+    x_im = x_im * window_size[1] / original_size[1]
 
     imp_co = torch.cat([torch.einsum('hw,bczhw->bczhw', x_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.einsum('hw,bczhw->bczhw', y_im.float(), torch.ones_like(z.unsqueeze(2)).float()), torch.ones_like(z.unsqueeze(2))], 2)
     imp_co = torch.nn.functional.unfold(imp_co.reshape(1, -1, height, width), kernel_size=(3,3), stride=(1,1), padding=(1,1), dilation=(1,1)).reshape(z.size(0),z.size(1),3,3*3,height,width)
-    
+
     imp_co = torch.einsum('bchw,bczshw->bczshw', z.float(), imp_co.float()).reshape(z.size(0),z.size(1),3,3*3,-1)
-    
+
     regr_co = torch.einsum('xz,yz->xy', imp_co.reshape(z.size(0),z.size(1),3,-1).permute(0,1,3,2).reshape(-1,3).float(), camera_matrix_inv.float())
     regr_co = regr_co.reshape(z.size(0),z.size(1),-1,3)
     return regr_co
 
-def to_3d(z, height, width, panels, original_size, window_size, camera_matrix_inv, device):
-    regr_co = to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix_inv, device).reshape(z.size(0),z.size(1),3,3,-1,3)
-    return (regr_co[:,:,1,1,:,:]).permute(0,1,3,2).reshape(-1,3, height, width)
-    
+def to_3d3x3(z, height, width, panels, original_size, window_size, camera_matrix_inv, device):
+    y_im, x_im = panels
+    y_im, x_im = torch.from_numpy(y_im).to(device), torch.from_numpy(x_im).to(device)
+    return to_3d3x3_torch(z, height, width, y_im, x_im, original_size, window_size, camera_matrix_inv, device)
+
+def to_3d(z, height, width, y_im, x_im, original_size, window_size, camera_matrix_inv, device):
+    y_im, x_im = y_im.reshape(-1, height, width), x_im.reshape(-1, height, width)
+    regr_co = to_3d_torch(z, height, width, y_im, x_im, original_size, window_size, camera_matrix_inv, device).reshape(y_im.size(0),-1,3,3,height*width,3)
+    return (regr_co[:,:,1,1,:,:]).permute(0,1,3,2).reshape(y_im.size(0),-1,3, height, width)
+
 def agg(x, ind=None, factor=None):
     fct = 0.
     if factor is not None:
         fct = factor
     x = x + (x==0.).float()*fct
-    
+
     sizes = list(x.size())
     sizes[2] = 3
     sizes[3] = 3
-    
+
     x = x.reshape(*sizes)
-    
+
     sizes[2] = 1
     sizes[3] = 1
-    
+
     def abs_alignment(x, relx, rely, fct):
         x = 1.*(x[:,:,relx,rely,:,:,:])
         if relx<1:
@@ -55,15 +73,15 @@ def agg(x, ind=None, factor=None):
         if rely>1:
             x = torch.cat([torch.ones_like(x[:,:,:,:,-1:])*fct, (x[:,:,:,:,:-1])],dim=-1)
         return x
-    
+
     ys = []
     for i in range(3):
         for j in range(3):
             ys.append(abs_alignment(x, i, j, fct).reshape(*sizes))
-    
+
     sizes[2] = 3*3
     sizes[3] = 1
-    
+
     x = torch.cat(ys,dim=2).reshape(*sizes) # [y00,y01,y02,y10,y11,y12,y20,y21,y22]
 
     if ind is None:
@@ -74,17 +92,17 @@ def agg(x, ind=None, factor=None):
         x1 = (x[:,:,:,:,1:2,:,:]).reshape(*sizes)
         x2 = (x[:,:,:,:,2:3,:,:]).reshape(*sizes)
         x3 = (x[:,:,:,:,3:,:,:]).reshape(*sizes)
-        
+
         sizes[2] = 1
         sizes[3] = 1
-        
+
         x0 = torch.sum(torch.where(ind,x0,torch.zeros_like(x0)),dim=2,keepdim=True)
         x1 = torch.sum(torch.where(ind,x1,torch.zeros_like(x1)),dim=2,keepdim=True)
         x2 = torch.sum(torch.where(ind,x2,torch.zeros_like(x2)),dim=2,keepdim=True)
         x3 = torch.sum(torch.where(ind,x3,torch.zeros_like(x3)),dim=2,keepdim=True)
-        
+
         return torch.cat([x0.reshape(*sizes), x1.reshape(*sizes), x2.reshape(*sizes), x3.reshape(*sizes)], dim=4)
-    
+
     sizes[4] = 1
     x0 = (x[:,:,:,:,:1,:,:]).reshape(*sizes)
 
@@ -96,59 +114,73 @@ def agg(x, ind=None, factor=None):
 
 def add_pad(x_value, y_value, z_value, r_mask, original_size):
     shapes = x_value.size()
-    BATCH_SIZE, height, width = shapes[0], shapes[-2], shapes[-1]
-
-    # 1. Prepare configuration for to_3d unit
-    height = height + 2**0 + 2**0
-    width = width + 2**0 + 2**0
-
-    panels = list(np.where(np.ones([height, width])))
-    offset_codes = ((height-original_size[0]), (width-original_size[1]))
-    panels[0] = panels[0] - (offset_codes[0]//2) + .5
-    panels[1] = panels[1] - (offset_codes[1]//2) + .5
-    #######################
-
-
-    # 2. Prepare input tensors
-    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:,:(2**0)]), x_value, torch.zeros_like(x_value[:,:,:,:,:(2**0)])], dim=-1)
-    x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:(2**0),:]), x_value, torch.zeros_like(x_value[:,:,:,:(2**0),:])], dim=-2)
-
-    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:,:(2**0)]), y_value, torch.zeros_like(y_value[:,:,:,:,:(2**0)])], dim=-1)
-    y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:(2**0),:]), y_value, torch.zeros_like(y_value[:,:,:,:(2**0),:])], dim=-2)
-
-    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:,:(2**0)]), z_value, torch.zeros_like(z_value[:,:,:,:,:(2**0)])], dim=-1)
-    z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:(2**0),:]), z_value, torch.zeros_like(z_value[:,:,:,:(2**0),:])], dim=-2)
-
-    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:,:(2**0)]), r_mask, torch.zeros_like(r_mask[:,:,:,:,:(2**0)])], dim=-1)
-    r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:(2**0),:]), r_mask, torch.zeros_like(r_mask[:,:,:,:(2**0),:])], dim=-2)
-    
-    return x_value, y_value, z_value, r_mask, panels
-
-
-        
-def calculate_key_query(x_value, y_value, z_value, panels, window_size, original_size, camera_matrix_inv, device="cpu"):
-    shapes = x_value.size()
     BATCH_SIZE, C_zoom, height, width = shapes[0], shapes[1], shapes[-2], shapes[-1]
     C_zoom_2 = int(np.sqrt(C_zoom))
     zoom = int(np.log2(C_zoom_2))
 
-    grouped_key_x = x_value.reshape(BATCH_SIZE,-1,1,1,height*width)
-    grouped_key_y = y_value.reshape(BATCH_SIZE,-1,1,1,height*width)
-    #######################
+    is_first = ((height*C_zoom_2)==original_size[0])
+    if is_first:
+        # 1. Prepare configuration for to_3d unit
+        height = height + 2**0 + 2**0
+        width = width + 2**0 + 2**0
 
+        # 2. Prepare input tensors
+        x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:,:(2**0)]), x_value, torch.zeros_like(x_value[:,:,:,:,:(2**0)])], dim=-1)
+        x_value = torch.cat([torch.zeros_like(x_value[:,:,:,:(2**0),:]), x_value, torch.zeros_like(x_value[:,:,:,:(2**0),:])], dim=-2)
+
+        y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:,:(2**0)]), y_value, torch.zeros_like(y_value[:,:,:,:,:(2**0)])], dim=-1)
+        y_value = torch.cat([torch.zeros_like(y_value[:,:,:,:(2**0),:]), y_value, torch.zeros_like(y_value[:,:,:,:(2**0),:])], dim=-2)
+
+        z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:,:(2**0)]), z_value, torch.zeros_like(z_value[:,:,:,:,:(2**0)])], dim=-1)
+        z_value = torch.cat([torch.zeros_like(z_value[:,:,:,:(2**0),:]), z_value, torch.zeros_like(z_value[:,:,:,:(2**0),:])], dim=-2)
+
+        r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:,:(2**0)]), r_mask, torch.zeros_like(r_mask[:,:,:,:,:(2**0)])], dim=-1)
+        r_mask = torch.cat([torch.zeros_like(r_mask[:,:,:,:(2**0),:]), r_mask, torch.zeros_like(r_mask[:,:,:,:(2**0),:])], dim=-2)
+
+    height_zoom, width_zoom = (height*C_zoom_2), (width*C_zoom_2)
+    C_zoom_2 = 1
+
+    panels = list(np.where(np.ones([height_zoom, width_zoom])))
+    offset_codes = ((height_zoom-(original_size[0])), (width_zoom-(original_size[1])))
+    panels[0] = (panels[0]) - ((offset_codes[0])//2)
+    panels[1] = (panels[1]) - ((offset_codes[1])//2)
+
+    panels[0], panels[1] = torch.from_numpy(panels[0]).float(), torch.from_numpy(panels[1]).float()
+
+    for i in range(zoom):
+        height_zoom = height_zoom // 2
+        width_zoom = width_zoom // 2
+        panels[0] = (panels[0]).reshape(1,C_zoom_2,C_zoom_2,1,height_zoom,2, width_zoom,2).permute(0,1,5,2,7,3,4,6).contiguous()
+        panels[0] = torch.mean(torch.mean(panels[0],dim=2,keepdim=True),dim=4,keepdim=True)
+        panels[0] = (panels[0]).reshape(1,-1,1,height_zoom, width_zoom)
+        panels[1] = (panels[1]).reshape(1,C_zoom_2,C_zoom_2,1,height_zoom,2, width_zoom,2).permute(0,1,5,2,7,3,4,6).contiguous()
+        panels[1] = torch.mean(torch.mean(panels[1],dim=2,keepdim=True),dim=4,keepdim=True)
+        panels[1] = (panels[1]).reshape(1,-1,1,height_zoom, width_zoom)
+    #######################
+    panels[0] = (panels[0]).reshape(-1,height_zoom,width_zoom).numpy()
+    panels[1] = (panels[1]).reshape(-1,height_zoom,width_zoom).numpy()
+
+    return x_value, y_value, z_value, r_mask, panels
+
+def calculate_key_query(x_value, y_value, z_value, panels, original_size, window_size, camera_matrix_inv, device="cpu"):
+    shapes = x_value.size()
+    BATCH_SIZE, C_zoom, height, width = shapes[0], shapes[1], shapes[-2], shapes[-1]
 
     # 3. Prepare spatial placeholders for recifying gradients
-    updated_key_z = to_3d3x3(z_value.reshape(BATCH_SIZE,-1,height, width), height, width, panels, original_size, window_size, camera_matrix_inv, device).permute(0,1,3,2).contiguous().reshape(BATCH_SIZE,-1,3,3*3,height*width)
+    updated_key_z = to_3d3x3(torch.mean(z_value,dim=2).reshape(BATCH_SIZE,C_zoom,height, width), height, width, panels, original_size, window_size, camera_matrix_inv, device).permute(0,1,3,2).contiguous().reshape(BATCH_SIZE,C_zoom,3,3*3,height*width)
 
-    query_x = (updated_key_z[:,:,:1,:,:]).detach()
-    query_y = (updated_key_z[:,:,1:2,:,:]).detach()
+    grouped_key_x = x_value.reshape(BATCH_SIZE,C_zoom,-1,height, width)+torch.zeros_like(updated_key_z[:,:,0,:,:]).reshape(BATCH_SIZE,C_zoom,3*3,height, width)
+    grouped_key_y = y_value.reshape(BATCH_SIZE,C_zoom,-1,height, width)+torch.zeros_like(updated_key_z[:,:,0,:,:]).reshape(BATCH_SIZE,C_zoom,3*3,height, width)
+    query_x = (updated_key_z[:,:,:1,:,:]).detach().reshape(BATCH_SIZE,C_zoom,3*3,height, width)
+    query_y = (updated_key_z[:,:,1:2,:,:]).detach().reshape(BATCH_SIZE,C_zoom,3*3,height, width)
+
 
     diff_x = torch.sign(grouped_key_x-query_x).detach()*(grouped_key_x-query_x)
     diff_y = torch.sign(grouped_key_y-query_y).detach()*(grouped_key_y-query_y)
-    key_query = torch.sum(diff_x+diff_y,dim=2)
+    key_query = diff_x+diff_y
     #######################
 
-    return key_query.reshape(BATCH_SIZE,-1,3*3,height, width)
+    return key_query
 
 def recover_size(x, n, zoom=0):
     BATCH_SIZE, C_zoom, h_out, w_out = x.size()
@@ -164,11 +196,10 @@ def recover_size(x, n, zoom=0):
 
 def save_for_vtest(path,activation_gradients, gradient_flows, input_representation, target_representation):
     import pickle
-    
-    flow_info = {"activation_gradients": activation_gradients, 
+
+    flow_info = {"activation_gradients": activation_gradients,
                  "gradient_flows": gradient_flows}
     with open(f'{path}/flow_info.pkl', 'wb') as f:
                     pickle.dump(flow_info, f)
     np.save(f"{path}/input_representation.npy", input_representation)
     np.save(f"{path}/target_representation.npy", target_representation)
-    

@@ -3,7 +3,6 @@ import numpy as np
 import torch
 from smap import SMap3x3, utils
 
-# the test case
 class SMap3x3UTestCase(unittest.TestCase):
     def setUp(self):
         self.device = "cpu"
@@ -16,13 +15,12 @@ class SMap3x3UTestCase(unittest.TestCase):
 
     def test_to_3d3x3(self):
         BATCH_SIZE = 1
-        
+
         depth_map = torch.from_numpy(np.zeros((self.img_shape[0], self.img_shape[1]))).float().to(self.device)
-        
-        active_point_img_coords = [np.random.choice(range(self.img_shape[0]),size=None), np.random.choice(range(self.img_shape[1]),size=None)]
-        depth_map[active_point_img_coords[0],active_point_img_coords[1]] = 1e3*(np.random.rand(1)[0])
-        offsetx, offsety = np.random.choice(range(3),size=None), np.random.choice(range(3),size=None)
-        
+        active_point_img_coords = [3, 4]
+        depth_map[active_point_img_coords[0], active_point_img_coords[1]] = 125.0
+        offsetx, offsety = 2, 1
+
         actual = (utils.to_3d3x3(depth_map.reshape(BATCH_SIZE,1,self.img_shape[0],self.img_shape[1]), self.img_shape[0], self.img_shape[1], self.panel, self.img_shape, self.img_shape, self.smap3x3.camera_matrix_inv, self.device).reshape(3,3,self.img_shape[0],self.img_shape[1],3)[offsetx,offsety,active_point_img_coords[0],active_point_img_coords[1],:]).cpu().numpy()
         pointy = (active_point_img_coords[1])+(offsety-1)
         if pointy<0 or pointy>=(self.img_shape[1]):
@@ -43,32 +41,32 @@ class SMap3x3UTestCase(unittest.TestCase):
             
     def test_agg_factor_only(self):
         BATCH_SIZE = 1
-        
-        active_point_img_coords0 = [np.random.choice(range(self.img_shape[0]),size=None), np.random.choice(range(self.img_shape[1]),size=None)]
-        active_point_img_coords1 = [np.random.choice(range(self.img_shape[0]),size=None), np.random.choice(range(self.img_shape[1]),size=None)]
-        offsetx0, offsety0 = np.random.choice(range(3),size=None), np.random.choice(range(3),size=None)
-        offsetx1, offsety1 = np.random.choice(range(3),size=None), np.random.choice(range(3),size=None)
-        first_value = 1e3*(np.random.rand(1)[0])
-        second_value = 1e3*(np.random.rand(1)[0])
+
+        active_point_img_coords0 = [3, 4]
+        active_point_img_coords1 = [0, 8]
+        offsetx0, offsety0 = 1, 1
+        offsetx1, offsety1 = 0, 1
+        first_value = 77.5
+        second_value = 434.75
         unfolded_depth_map = torch.from_numpy(np.zeros((3,3, self.img_shape[0], self.img_shape[1]))).float().to(self.device)
         unfolded_depth_map[offsetx0,offsety0,active_point_img_coords0[0],active_point_img_coords0[1]] = first_value
         unfolded_depth_map[offsetx1,offsety1,active_point_img_coords1[0],active_point_img_coords1[1]] = second_value
-        
-        factor = 1e15*(np.random.rand(1)[0])
+
+        factor = 1e6
         actual = utils.agg(unfolded_depth_map.reshape(BATCH_SIZE,1,3,3,1, self.img_shape[0], self.img_shape[1])
         , factor=factor).cpu().numpy()
-        
+
         expected = torch.from_numpy(factor*np.ones((3,3, self.img_shape[0], self.img_shape[1]))).float().to(self.device).numpy()
         pointx0 = active_point_img_coords0[0]+offsetx0-1
         pointy0 = active_point_img_coords0[1]+offsety0-1
         pointx1 = active_point_img_coords1[0]+offsetx1-1
         pointy1 = active_point_img_coords1[1]+offsety1-1
-        if pointx0<(self.img_shape[0]) and pointy0<(self.img_shape[1]):
+        if 0 <= pointx0 < self.img_shape[0] and 0 <= pointy0 < self.img_shape[1]:
             expected[offsetx0,offsety0,pointx0,pointy0] = first_value
-        if pointx1<(self.img_shape[0]) and pointy1<(self.img_shape[1]):
+        if 0 <= pointx1 < self.img_shape[0] and 0 <= pointy1 < self.img_shape[1]:
             expected[offsetx1,offsety1,pointx1,pointy1] = second_value
         expected = expected.reshape(1,1,3*3,1,1, self.img_shape[0], self.img_shape[1])
-        
+
         try:
             np.testing.assert_allclose(actual, expected,
                                        err_msg="Transforming to absolute-alignment representation failed.")
@@ -84,21 +82,19 @@ class SMap3x3UTestCase(unittest.TestCase):
             
     def test_agg_ind(self):
         BATCH_SIZE = 1
-        
-        active_point_img_coords0 = [np.random.choice(range(self.img_shape[0]),size=None), np.random.choice(range(self.img_shape[1]),size=None)]
-        active_point_img_coords1 = [np.random.choice(range(self.img_shape[0]),size=None), np.random.choice(range(self.img_shape[1]),size=None)]
-        offsetx0, offsety0 = np.random.choice(range(3),size=None), np.random.choice(range(3),size=None)
-        offsetx1, offsety1 = np.random.choice(range(3),size=None), np.random.choice(range(3),size=None)
-        channel_num = np.random.choice([1,4],size=None)
-        first_values = np.random.rand(channel_num)
-        first_values[:3] = 1e3*(first_values[:3])
-        second_values = np.random.rand(channel_num)
-        second_values[:3] = 1e3*(second_values[:3])
+
+        active_point_img_coords0 = [3, 4]
+        active_point_img_coords1 = [5, 6]
+        offsetx0, offsety0 = 1, 1
+        offsetx1, offsety1 = 1, 1
+        channel_num = 4
+        first_values = np.array([10.0, 20.0, 30.0, 0.1])
+        second_values = np.array([40.0, 50.0, 60.0, 0.2])
         unfolded_depth_map = torch.from_numpy(np.zeros((3,3,channel_num, self.img_shape[0], self.img_shape[1]))).float().to(self.device)
         unfolded_depth_map[offsetx0,offsety0,:channel_num,active_point_img_coords0[0],active_point_img_coords0[1]] = torch.from_numpy(first_values)
         unfolded_depth_map[offsetx1,offsety1,:channel_num,active_point_img_coords1[0],active_point_img_coords1[1]] = torch.from_numpy(second_values)
-        
-        factor = 1e15*(np.random.rand(1)[0])
+
+        factor = 1e6
         pointx0 = active_point_img_coords0[0]+offsetx0-1
         pointy0 = active_point_img_coords0[1]+offsety0-1
         pointx1 = active_point_img_coords1[0]+offsetx1-1

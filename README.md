@@ -30,6 +30,7 @@ This project introduces a novel, explainable approach to 3D inference, detailed 
 - [Setup & Installation](#setup--installation)
 - [Quick Start](#quick-start)
 - [Roadmap](#roadmap)
+- [AI Agent Integration & The Verification Harness](#ai-agent-integration--the-verification-harness)
 - [Contributing](#contributing)
 - [Citation](#citation)
 - [Logo and Attribution](#logo-and-attribution)
@@ -196,9 +197,47 @@ The next release will focus on:
 
 For more detailed plans, you can check our [Trello Board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management).
 
+## AI Agent Integration & The Verification Harness
+
+SMap is designed to be **AI-Native**. We use a rigorous "Source-Completion via App-Based Auditing" paradigm, meaning every mathematical proof and code block is verifiable by both humans and AI agents.
+
+**What "the harness" is, in one paragraph.** SMap keeps three artifacts in sync: the **source** (`smap/`, the single source of truth), a **math model + proof** ([`harness/specs/math_model.md`](harness/specs/math_model.md)) describing the algorithm the source *should* implement, and a **JSX Simulator** ([`harness/simulator/`](harness/simulator/)) that mirrors the source so any deviation shows up as an on-screen bug. "Source-Completion via App-Based Auditing" simply means we make the source correct by repeatedly auditing it through that simulator against the proof. You contribute by reporting or fixing a deviation between these three — see [Contributing](#contributing).
+
+**What the proof establishes, in one line:** training drives **Φ** — the count of pixels where the rendered silhouette disagrees with the target — down to zero, and Φ = 0 holds exactly when every target pixel is covered *and* every rendered pixel is on target (the precise definition of a correct projection). Full statement and proof: [`harness/specs/math_model.md`](harness/specs/math_model.md).
+
+### Running the JSX Simulator (no AI agent required)
+The simulator is the visual audit instrument, and the bug-report flow asks for a `snapshot_*.json` produced from it. Its source is [`harness/simulator/smap_simulator.jsx`](harness/simulator/smap_simulator.jsx); you launch it through the small dev server in `harness/preview/`:
+
+```bash
+cd harness/preview
+npm install      # first time only
+npm run dev      # serves http://127.0.0.1:5188
+```
+
+Open **http://127.0.0.1:5188**, set up the state that shows the behaviour you want to report, then click **📷 Snapshot → Save to File** to write a `snapshot_*.json` (the panel also copies it to your clipboard). Attach that file to your bug report.
+
+### Setting up with Antigravity / AI Agents
+This route needs an AI agent **with local workspace access** — e.g. Antigravity, Claude Code, Cursor, or Cline — because it runs a filesystem skill; a browser-only assistant (web ChatGPT/Claude) cannot execute it. With such an agent, you can instantly sync it with the project's entire verification history and current mathematical state.
+
+**To load the context:**
+Tell your agent: *"Use the `read-effective-verbal-context` skill located in `harness/skills/`."*
+The agent will automatically load the architectural specs, active bugs, and mathematical proofs.
+
+**What you can ask your agent to do:**
+Once the context is loaded, the harness allows you to safely command your agent to:
+- **Build Custom Apps:** Ask the agent to write a new application (e.g., in the `applications/` directory) that utilizes SMap based on your specific requirements.
+- **Install & Setup:** Ask the agent to install SMap, run tests, or execute the JSX Simulator (`harness/simulator/`) to verify convergence.
+- **Debug:** Ask the agent to investigate active bugs listed in [`active_bugs.md`](active_bugs.md) by running the headless probes (`harness/audit/`).
+
 ## Contributing
 
-Contributions are welcome! If you have suggestions or want to contribute code, please open an issue to discuss your ideas or submit a pull request.
+**The fastest way to contribute is to report a bug — and you do not need any special rights to do it.** If something in SMap (including this README or the harness itself) behaves in a way that surprises you, that is already a reportable bug. Open an issue with the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md), attach a `snapshot_*.json` (see [Running the JSX Simulator](#running-the-jsx-simulator-no-ai-agent-required) above), and describe what surprised you.
+
+Beyond bug reports, we use several Pull Request types — **Code Fix**, **Math Model**, **JSX UI**, **Harness**, **Audit Round**, and **New Application** proposals. The current bug list lives in [`active_bugs.md`](active_bugs.md).
+
+> **Note on the source code:** SMap alternates between an **Initialization Phase** (the source is frozen while we build the math model around it) and a **Development Phase** (the source is fixed to match the model). You never need to track this by hand — when an AI agent loads the project context it is told the current phase automatically and guides you accordingly. To just report a bug, the phase does not matter.
+
+Please see our comprehensive [CONTRIBUTING.md](CONTRIBUTING.md) for the full PR types, the contributor roles (General Contributor, Domain Expert, Admin), and how to submit.
 
 ## Citation
 

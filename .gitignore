@@ -14,6 +14,8 @@ tutorial/.ipynb_checkpoints/vtest_tutorial-checkpoint.ipynb
 /applications/Camera Calibration/.ipynb_checkpoints
 applications/Camera Calibration/dev_history.csv
 applications/Camera Calibration/model_0_0.pth
+applications/Camera Calibration/model_final.pth
+applications/Camera Calibration/test_net.pt
 applications/Camera Calibration/orientation.png
 applications/Camera Calibration/position.png
 applications/Camera Calibration/train_history_0_0.csv
@@ -31,4 +33,56 @@ docs/test case/TOUCHME.html
 .vscode/settings.json
 .ipynb_checkpoints/README-checkpoint.md
 /tools/rebase-dashboard/
+/tools/source-completion-dashboard/
 /effective-verbal-context.md
+
+# Local Codex skill infrastructure
+/.codex/skills/write-effective-verbal-context/
+/harness/skills/write-effective-verbal-context/
+
+# Ignore local Agent PR simulations
+/PRs/
+
+# Python Cache & Build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+
+# IDEs
+.claude/
+.vscode/
+.idea/
+
+# SMap specific temporary directories
+harness/audit/sandbox/
+harness/audit/hdvo/artifacts/
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# SMap Preview Snapshots
+harness/snapshot_*.json
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

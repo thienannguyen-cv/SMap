@@ -45,8 +45,11 @@ based 3D inference</a></li>
 <li><a href="#setup--installation">Setup &amp; Installation</a></li>
 <li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#roadmap">Roadmap</a></li>
+<li><a href="#ai-agent-integration--the-verification-harness">AI Agent
+Integration &amp; The Verification Harness</a></li>
 <li><a href="#contributing">Contributing</a></li>
 <li><a href="#citation">Citation</a></li>
+<li><a href="#logo-and-attribution">Logo and Attribution</a></li>
 <li><a href="#license">License</a></li>
 </ul>
 <h2 id="the-vision-dynamic-3d-inference">The Vision: Dynamic 3D
@@ -244,20 +247,116 @@ Implementing depth estimation for single-shape objects.</p>
 <p>For more detailed plans, you can check our <a
 href="https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management">Trello
 Board</a>.</p>
+<h2 id="ai-agent-integration-the-verification-harness">AI Agent
+Integration &amp; The Verification Harness</h2>
+<p>SMap is designed to be <strong>AI-Native</strong>. We use a rigorous
+“Source-Completion via App-Based Auditing” paradigm, meaning every
+mathematical proof and code block is verifiable by both humans and AI
+agents.</p>
+<p><strong>What “the harness” is, in one paragraph.</strong> SMap keeps
+three artifacts in sync: the <strong>source</strong>
+(<code>smap/</code>, the single source of truth), a <strong>math model +
+proof</strong> (<a
+href="harness/specs/math_model.md"><code>harness/specs/math_model.md</code></a>)
+describing the algorithm the source <em>should</em> implement, and a
+<strong>JSX Simulator</strong> (<a
+href="harness/simulator/"><code>harness/simulator/</code></a>) that
+mirrors the source so any deviation shows up as an on-screen bug.
+“Source-Completion via App-Based Auditing” simply means we make the
+source correct by repeatedly auditing it through that simulator against
+the proof. You contribute by reporting or fixing a deviation between
+these three — see <a href="#contributing">Contributing</a>.</p>
+<p><strong>What the proof establishes, in one line:</strong> training
+drives <strong>Φ</strong> — the count of pixels where the rendered
+silhouette disagrees with the target — down to zero, and Φ = 0 holds
+exactly when every target pixel is covered <em>and</em> every rendered
+pixel is on target (the precise definition of a correct projection).
+Full statement and proof: <a
+href="harness/specs/math_model.md"><code>harness/specs/math_model.md</code></a>.</p>
+<h3 id="running-the-jsx-simulator-no-ai-agent-required">Running the JSX
+Simulator (no AI agent required)</h3>
+<p>The simulator is the visual audit instrument, and the bug-report flow
+asks for a <code>snapshot_*.json</code> produced from it. Its source is
+<a
+href="harness/simulator/smap_simulator.jsx"><code>harness/simulator/smap_simulator.jsx</code></a>;
+you launch it through the small dev server in
+<code>harness/preview/</code>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> harness/preview</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install      <span class="co"># first time only</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run dev      <span class="co"># serves http://127.0.0.1:5188</span></span></code></pre></div>
+<p>Open <strong>http://127.0.0.1:5188</strong>, set up the state that
+shows the behaviour you want to report, then click <strong>📷 Snapshot →
+Save to File</strong> to write a <code>snapshot_*.json</code> (the panel
+also copies it to your clipboard). Attach that file to your bug
+report.</p>
+<h3 id="setting-up-with-antigravity-ai-agents">Setting up with
+Antigravity / AI Agents</h3>
+<p>This route needs an AI agent <strong>with local workspace
+access</strong> — e.g. Antigravity, Claude Code, Cursor, or Cline —
+because it runs a filesystem skill; a browser-only assistant (web
+ChatGPT/Claude) cannot execute it. With such an agent, you can instantly
+sync it with the project’s entire verification history and current
+mathematical state.</p>
+<p><strong>To load the context:</strong> Tell your agent: <em>“Use the
+<code>read-effective-verbal-context</code> skill located in
+<code>harness/skills/</code>.”</em> The agent will automatically load
+the architectural specs, active bugs, and mathematical proofs.</p>
+<p><strong>What you can ask your agent to do:</strong> Once the context
+is loaded, the harness allows you to safely command your agent to: -
+<strong>Build Custom Apps:</strong> Ask the agent to write a new
+application (e.g., in the <code>applications/</code> directory) that
+utilizes SMap based on your specific requirements. - <strong>Install
+&amp; Setup:</strong> Ask the agent to install SMap, run tests, or
+execute the JSX Simulator (<code>harness/simulator/</code>) to verify
+convergence. - <strong>Debug:</strong> Ask the agent to investigate
+active bugs listed in <a
+href="active_bugs.md"><code>active_bugs.md</code></a> by running the
+headless probes (<code>harness/audit/</code>).</p>
 <h2 id="contributing">Contributing</h2>
-<p>Contributions are welcome! If you have suggestions or want to
-contribute code, please open an issue to discuss your ideas or submit a
-pull request.</p>
+<p><strong>The fastest way to contribute is to report a bug — and you do
+not need any special rights to do it.</strong> If something in SMap
+(including this README or the harness itself) behaves in a way that
+surprises you, that is already a reportable bug. Open an issue with the
+<a href=".github/ISSUE_TEMPLATE/bug_report.md">bug report template</a>,
+attach a <code>snapshot_*.json</code> (see <a
+href="#running-the-jsx-simulator-no-ai-agent-required">Running the JSX
+Simulator</a> above), and describe what surprised you.</p>
+<p>Beyond bug reports, we use several Pull Request types — <strong>Code
+Fix</strong>, <strong>Math Model</strong>, <strong>JSX UI</strong>,
+<strong>Harness</strong>, <strong>Audit Round</strong>, and <strong>New
+Application</strong> proposals. The current bug list lives in <a
+href="active_bugs.md"><code>active_bugs.md</code></a>.</p>
+<blockquote>
+<p><strong>Note on the source code:</strong> SMap alternates between an
+<strong>Initialization Phase</strong> (the source is frozen while we
+build the math model around it) and a <strong>Development Phase</strong>
+(the source is fixed to match the model). You never need to track this
+by hand — when an AI agent loads the project context it is told the
+current phase automatically and guides you accordingly. To just report a
+bug, the phase does not matter.</p>
+</blockquote>
+<p>Please see our comprehensive <a
+href="CONTRIBUTING.md">CONTRIBUTING.md</a> for the full PR types, the
+contributor roles (General Contributor, Domain Expert, Admin), and how
+to submit.</p>
 <h2 id="citation">Citation</h2>
 <p>If you use SMap or its underlying concepts in your research, please
 cite our paper:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">nguyen2022solution</span>,</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">title</span>={A Solution for a Fundamental Problem of 3D Inference based on 2D Representations},</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">author</span>={Thien An L. Nguyen},</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">journal</span>={arXiv preprint arXiv:2211.04691},</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">year</span>={2022}</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">nguyen2022solution</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">title</span>={A Solution for a Fundamental Problem of 3D Inference based on 2D Representations},</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">author</span>={Thien An L. Nguyen},</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">journal</span>={arXiv preprint arXiv:2211.04691},</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">year</span>={2022}</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="logo-and-attribution">Logo and Attribution</h2>
+<p>The SMap logo (<code>logo.png</code>) was created for the SMap
+project by Thien An L. Nguyen. Copyright 2026 Thien An L. Nguyen. It may
+be used to refer to the SMap project in a truthful and non-misleading
+way, but should not be used to imply third-party endorsement,
+affiliation, or product identity without permission.</p>
+<p>See <a href="NOTICE">NOTICE</a> for attribution details.</p>
 <h2 id="license">License</h2>
 <p>This project is licensed under the <strong>Apache 2.0
 License</strong>. See the <a href="LICENSE">LICENSE</a> file for more

@@ -32,6 +32,7 @@ This project introduces a novel, explainable approach to 3D inference, detailed 
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Citation](#citation)
+- [Logo and Attribution](#logo-and-attribution)
 - [License](#license)
 
 ## The Vision: Dynamic 3D Inference
@@ -210,6 +211,16 @@ If you use SMap or its underlying concepts in your research, please cite our pap
   year={2022}
 }
 ```
+
+## Logo and Attribution
+
+The SMap logo (`logo.png`) was created for the SMap project by Thien An L.
+Nguyen. Copyright 2026 Thien An L. Nguyen. It may be used to refer to the
+SMap project in a truthful and non-misleading way, but should not be used to
+imply third-party endorsement, affiliation, or product identity without
+permission.
+
+See [NOTICE](NOTICE) for attribution details.
 
 ## License
 

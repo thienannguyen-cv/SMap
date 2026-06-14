@@ -1,6 +1,6 @@
 <h1 align="center">
   <a href="https://github.com/thienannguyen-cv/SMap">
-    <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="1024">
+    <img src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo-full.png" width="1024">
   </a>
 </h1><br>
 
@@ -253,7 +253,7 @@ If you use SMap or its underlying concepts in your research, please cite our pap
 
 ## Logo and Attribution
 
-The SMap logo (`logo.png`) was created for the SMap project by Thien An L.
+The SMap logos (`logo.png` and `logo-full.png`) were created for the SMap project by Thien An L.
 Nguyen. Copyright 2026 Thien An L. Nguyen. It may be used to refer to the
 SMap project in a truthful and non-misleading way, but should not be used to
 imply third-party endorsement, affiliation, or product identity without

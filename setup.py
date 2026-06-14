@@ -20,6 +20,11 @@ with open("requirements.txt", "r", encoding="utf-8") as req_file:
 with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
+long_description = long_description.replace(
+    'src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo-full.png" width="1024"',
+    'src="https://raw.githubusercontent.com/thienannguyen-cv/SMap/main/logo.png" width="300"',
+)
+
 setup(
     name="smap-torch",  # Tên package
     version=read_version(),  # Phiên bản khởi đầu

@@ -4,12 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '.github/workflows/ci.yml'
       - 'smap/**'
       - 'tests/**'
       - 'tools/testing/vtest/**'
   pull_request:
     branches: [ main ]
     paths:
+      - '.github/workflows/ci.yml'
       - 'smap/**'
       - 'tests/**'
       - 'tools/testing/vtest/**'
@@ -37,7 +39,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip "setuptools<81"
           pip install -r requirements.txt
-          pip install coverage coverage-badge==1.1.2 unittest-xml-reporting==3.1.0
+          pip install coverage unittest-xml-reporting==3.1.0
 
       - name: Install package in editable mode
         run: pip install -e .
@@ -52,7 +54,47 @@ jobs:
       - name: Generate coverage badge
         run: |
           # Tạo file badge SVG (ghi đè nếu đã có)
-          coverage-badge -o coverage.svg -f
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse("coverage.xml").getroot()
+          coverage = float(root.attrib.get("line-rate", "0")) * 100
+          percent = f"{coverage:.0f}%"
+
+          if coverage >= 90:
+              color = "#4c1"
+          elif coverage >= 75:
+              color = "#97ca00"
+          elif coverage >= 60:
+              color = "#dfb317"
+          else:
+              color = "#e05d44"
+
+          svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="106" height="20" role="img" aria-label="coverage: {percent}">
+            <title>coverage: {percent}</title>
+            <linearGradient id="s" x2="0" y2="100%">
+              <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+              <stop offset="1" stop-opacity=".1"/>
+            </linearGradient>
+            <clipPath id="r"><rect width="106" height="20" rx="3" fill="#fff"/></clipPath>
+            <g clip-path="url(#r)">
+              <rect width="63" height="20" fill="#555"/>
+              <rect x="63" width="43" height="20" fill="{color}"/>
+              <rect width="106" height="20" fill="url(#s)"/>
+            </g>
+            <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">
+              <text aria-hidden="true" x="325" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="530">coverage</text>
+              <text x="325" y="140" transform="scale(.1)" fill="#fff" textLength="530">coverage</text>
+              <text aria-hidden="true" x="835" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="330">{percent}</text>
+              <text x="835" y="140" transform="scale(.1)" fill="#fff" textLength="330">{percent}</text>
+            </g>
+          </svg>
+          '''
+
+          Path("coverage.svg").write_text(svg, encoding="utf-8")
+          print(f"Wrote coverage.svg for coverage {percent}")
+          PY
 
       - name: Upload test results (optional)
         if: always()

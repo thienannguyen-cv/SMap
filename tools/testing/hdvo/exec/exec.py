@@ -764,7 +764,7 @@ def process_multiple_sessions(input_paths, output_path):
             for i, error_grid in enumerate(all_error_grids):
                 ch_idx, r_start, c_start = best_hotspot_coords
                 cropped_error_grid = error_grid[..., r_start:r_start+HOTSPOT_SIZE, c_start:c_start+HOTSPOT_SIZE]
-                cropped_error_grid = error_grid[ch_idx, ...]
+                cropped_error_grid = cropped_error_grid[ch_idx, ...]
                 hotspot_total_errors = np.sum(cropped_error_grid)
                 print(f"Tổng lỗi tại hotspot cho AI Function #{i+1}: {hotspot_total_errors}")
 

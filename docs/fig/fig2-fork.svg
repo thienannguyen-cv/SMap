@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" width="1380" height="840" font-family="Arial, sans-serif">
+  <defs>
+    <marker id="red" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B0443C"/></marker>
+    <marker id="teal" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0B8C7E"/></marker>
+    <marker id="nv" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1E2761"/></marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="560" fill="#FFFFFF"/>
+
+  <!-- incoming arrow: synchronization cost rising -->
+  <line x1="55" y1="280" x2="350" y2="280" stroke="#1E2761" stroke-width="6" marker-end="url(#nv)"/>
+  <text x="60" y="262" font-size="18" fill="#1E2761" font-weight="bold">Chi phí ĐỒNG BỘ tăng</text>
+  <text x="60" y="312" font-size="14" fill="#6B7280">(ý định người ↔ hiện thực máy)</text>
+
+  <!-- fork node -->
+  <circle cx="372" cy="280" r="10" fill="#111111"/>
+
+  <!-- Horn A: upper branch -->
+  <line x1="380" y1="276" x2="690" y2="120" stroke="#B0443C" stroke-width="5" marker-end="url(#red)"/>
+  <rect x="700" y="78" width="200" height="86" rx="10" fill="#FBEDEC" stroke="#B0443C" stroke-width="2"/>
+  <text x="712" y="106" font-size="17" fill="#B0443C" font-weight="bold">SỪNG A</text>
+  <text x="712" y="129" font-size="14" fill="#7A2E28">Mất kiểm soát hệ thống</text>
+  <text x="712" y="149" font-size="13" fill="#9AA0AC">(giữ tham vọng)</text>
+
+  <!-- Horn B: lower branch -->
+  <line x1="380" y1="284" x2="690" y2="440" stroke="#B0443C" stroke-width="5" marker-end="url(#red)"/>
+  <rect x="700" y="398" width="200" height="86" rx="10" fill="#FBEDEC" stroke="#B0443C" stroke-width="2"/>
+  <text x="712" y="426" font-size="17" fill="#B0443C" font-weight="bold">SỪNG B</text>
+  <text x="712" y="449" font-size="14" fill="#7A2E28">Thu hẹp ý định</text>
+  <text x="712" y="469" font-size="13" fill="#9AA0AC">(giữ hệ thống)</text>
+
+  <!-- middle straight path: bridge discipline -->
+  <line x1="380" y1="280" x2="860" y2="280" stroke="#0B8C7E" stroke-width="6" marker-end="url(#teal)"/>
+  <rect x="392" y="232" width="330" height="40" rx="8" fill="#E6F5F2" stroke="#0B8C7E" stroke-width="1.5"/>
+  <text x="404" y="258" font-size="15" fill="#0B6E63" font-weight="bold">KỶ LUẬT CẦU NỐI — đi thẳng, không rẽ</text>
+  <text x="600" y="300" font-size="13" fill="#0B6E63">giữ chi phí đồng bộ bị chặn trên</text>
+
+  <!-- lose-lose annotation -->
+  <text x="430" y="120" font-size="14" fill="#B0443C" font-style="italic">cái nĩa = lose–lose</text>
+</svg>

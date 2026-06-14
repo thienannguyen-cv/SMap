@@ -1,0 +1,8 @@
+# SMap CODEOWNERS
+
+# The harness is the single source of truth for verification.
+# Only Admins / Core Maintainers should modify the harness.
+/harness/ @thienannguyen-cv
+/harness/skills/ @thienannguyen-cv
+/harness/audit/ @thienannguyen-cv
+/harness/agents/ @thienannguyen-cv

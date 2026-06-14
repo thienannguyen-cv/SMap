@@ -1,0 +1,7 @@
+interface:
+  display_name: "Read Effective Verbal Context"
+  short_description: "Resume work from handoff context"
+  default_prompt: "Use $read-effective-verbal-context to load effective-verbal-context.md and continue the session from the recovered objective, constraints, artifacts, and next actions."
+
+policy:
+  allow_implicit_invocation: true

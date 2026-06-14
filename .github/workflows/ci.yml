@@ -4,14 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/ci.yml'
       - 'smap/**'
       - 'tests/**'
       - 'tools/testing/vtest/**'
   pull_request:
     branches: [ main ]
     paths:
-      - '.github/workflows/ci.yml'
       - 'smap/**'
       - 'tests/**'
       - 'tools/testing/vtest/**'
@@ -46,14 +44,14 @@ jobs:
       
       - name: Run unit tests and generate coverage
         run: |
-          # Chạy tests bằng xmlrunner và đo coverage (chỉ định --source nếu bạn muốn bao gồm các file của package)
+          # Run tests with xmlrunner and collect coverage for the package.
           coverage run --source=smap -m xmlrunner discover -s tests -p "[vu]test*.py" -o test-results
-          # Tạo file báo cáo XML của coverage
+          # Generate the coverage XML report.
           coverage xml
 
       - name: Generate coverage badge
         run: |
-          # Tạo file badge SVG (ghi đè nếu đã có)
+          # Generate the coverage badge SVG.
           python - <<'PY'
           from pathlib import Path
           import xml.etree.ElementTree as ET
@@ -110,16 +108,16 @@ jobs:
           name: coverage-badge-${{ matrix.python-version }}-${{ github.run_id }}
           path: coverage.svg
 
-      # Cài đặt pandoc
+      # Install pandoc.
       - name: Install pandoc
         run: sudo apt-get install pandoc
 
-      # Chỉ chạy bước deploy cho python-version 3.9 để tránh việc deploy nhiều lần
+      # Deploy only once for Python 3.9.
       - name: Prepare README for GitHub Pages
         if: ${{ matrix.python-version == '3.9' }}
         run: |
           mkdir -p gh-pages-folder
-          pandoc README.md -o gh-pages-folder/index.html  # Chuyển README.md thành index.html
+          pandoc README.md -o gh-pages-folder/index.html
           cp coverage.svg gh-pages-folder/coverage.svg
 
       - name: Deploy to GitHub Pages

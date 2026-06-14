@@ -1,18 +1,20 @@
 # Commit Standard For SMap
 
-Tai lieu nay la chuan commit chinh thuc cho SMap. Muc tieu la giu lich su de doc, de review va de audit.
+This document defines the official commit standard for SMap. The goal is to keep
+the project history readable, reviewable, and auditable.
 
 ## Format
 
-SMap nen dung Conventional Commits:
+SMap uses Conventional Commits:
 
 ```text
 type(scope): subject
 ```
 
-Subject nen dai toi da 72 ky tu khi co the. Body nen wrap khoang 72-88 ky tu moi dong.
+Keep the subject at or below 72 characters when possible. Wrap body lines at
+roughly 72-88 characters.
 
-Vi du tu lich su da duoc chuan hoa:
+Examples from the normalized history:
 
 ```text
 chore(project): initialize repository and early structure
@@ -28,48 +30,53 @@ build(deps): prepare for the new update and cleanup codebase
 
 ## Types
 
-- `feat`: them tinh nang hoac kha nang moi.
-- `fix`: sua bug hoac sua sai lech hanh vi.
-- `docs`: chi thay doi tai lieu, README, notebook huong dan, hinh anh minh hoa tai lieu.
-- `test`: them hoac sua test.
-- `ci`: thay doi GitHub Actions hoac pipeline.
-- `build`: thay doi packaging, dependency, release, setup.
-- `refactor`: doi cau truc code khong doi hanh vi.
-- `chore`: viec bao tri repo khong thuoc cac nhom tren.
-- `perf`: toi uu hieu nang khong doi API.
-- `style`: thay doi format khong doi logic.
+- `feat`: add a new feature or capability.
+- `fix`: fix a bug or behavioral mismatch.
+- `docs`: change documentation, README files, tutorial notebooks, or
+  documentation images only.
+- `test`: add or update tests.
+- `ci`: change GitHub Actions or pipeline behavior.
+- `build`: change packaging, dependencies, release setup, or build tooling.
+- `refactor`: restructure code without changing behavior.
+- `chore`: maintain repository internals that do not fit the other types.
+- `perf`: improve performance without changing the public API.
+- `style`: change formatting without changing logic.
 
-## Scopes De Xuat
+## Recommended Scopes
 
-- `core`: `smap/`, thuat toan va public API.
-- `docs`: `README.md`, `docs/`, tai lieu tutorial.
-- `test`: `tests/`, du lieu test, vtest.
+- `core`: `smap/`, algorithms, and public API.
+- `docs`: `README.md`, `docs/`, tutorial documentation.
+- `test`: `tests/`, test data, visual tests.
 - `ci`: `.github/workflows/`.
 - `deps`: `requirements.txt`, `environment.yml`, dependency setup.
-- `release`: version, tag, PyPI, release artifact.
+- `release`: versions, tags, PyPI, release artifacts.
 - `hdvo`: `tools/testing/hdvo/`.
 - `vtest`: `tools/testing/vtest/`.
-- `assets`: logo, image, media.
-- `project`: khoi tao hoac cau truc repo.
+- `assets`: logo, images, and media.
+- `project`: repository initialization or broad project structure.
 
 ## Subject Rules
 
-- Dung imperative mood ngan gon: `add`, `fix`, `refactor`, `update` khi that su can.
-- Viet bang tieng Anh de dong bo voi lich su hien tai.
-- Khong ket thuc bang dau cham.
-- Tranh message chung chung nhu `Update README.md`, `Add files via upload`, `Maintain unittest-passed status`.
-- Neu commit gom nhieu file, subject phai noi muc dich, khong noi thao tac.
+- Use a concise imperative verb such as `add`, `fix`, `refactor`, or `update`
+  when it fits the change.
+- Write subjects in English to match the current history.
+- Do not end the subject with a period.
+- Avoid generic messages such as `Update README.md`, `Add files via upload`, or
+  `Maintain unittest-passed status`.
+- If a commit touches multiple files, describe the purpose rather than the file
+  operation.
 
 ## Body Rules
 
-Body la tuy chon, nhung nen co khi:
+A body is optional, but recommended when a commit:
 
-- Commit thay doi hanh vi thuat toan.
-- Commit lien quan release/version/license.
-- Commit gom nhieu thay doi lien quan cung mot muc dich.
-- Commit co migration, conflict resolution, hoac tradeoff can ghi lai.
+- Changes algorithm behavior.
+- Affects releases, versions, or licenses.
+- Groups several related changes under one purpose.
+- Records a migration, conflict resolution, or tradeoff that should remain
+  auditable later.
 
-Mau body:
+Body template:
 
 ```text
 Explain why the change is needed and what behavior it preserves.
@@ -77,34 +84,34 @@ Explain why the change is needed and what behavior it preserves.
 Refs: #issue-number
 ```
 
-Voi commit lon, body nen tra loi 3 cau:
+For larger commits, the body should answer three questions:
 
-- Van de hoac muc tieu la gi.
-- Trang thai/hanh vi nao duoc giu lai.
-- Co tradeoff hoac resolution quan trong nao can audit ve sau.
+- What problem or goal does this commit address?
+- What state or behavior does it preserve?
+- What tradeoff or resolution should future reviewers know about?
 
 ## Signing Rules
 
-Tat ca commit moi tren branch chinh nen duoc ky bang GPG key:
+All new commits on the main branch should be signed with this GPG key:
 
 ```text
 685C0F023DA361CC
 ```
 
-Cau hinh Git de ky mac dinh:
+Configure Git to sign commits by default:
 
 ```bash
 git config user.signingkey 685C0F023DA361CC
 git config commit.gpgsign true
 ```
 
-Kiem tra commit moi nhat:
+Verify the latest commit:
 
 ```bash
 git log -1 --format="%h %G? %GK %GS %s"
 ```
 
-Ket qua mong muon cho commit moi:
+Expected result for new commits:
 
 ```text
 <hash> G 685C0F023DA361CC Thien An L. Nguyen <thienannguyen.cv@gmail.com> <subject>
@@ -112,7 +119,7 @@ Ket qua mong muon cho commit moi:
 
 ## Verification
 
-Truoc khi push, chay test toi thieu:
+Before pushing, run at least the unit tests:
 
 ```bash
 python -m unittest discover -s tests -p "[vu]test*.py"
@@ -120,23 +127,30 @@ python -m unittest discover -s tests -p "[vu]test*.py"
 
 ## Local Hook
 
-Repo co the dung hook commit message trong `.githooks/commit-msg`.
+The repository can use the commit-message hook in `.githooks/commit-msg`.
 
-Bat hook:
+Enable it with:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Hook nay chi kiem tra subject theo Conventional Commits. Chu ky GPG van duoc kiem tra bang `git log --format` nhu tren.
+This hook only validates the subject against Conventional Commits. Verify the
+GPG signature separately with `git log --format` as shown above.
 
 ## CI/CD
 
-Repo da co CI test. Lint duoc them theo 2 giai doan de tranh lam CI do dot ngot:
+The repository already has unit-test CI. Lint is introduced in two phases to
+avoid making CI fail abruptly on the existing baseline:
 
-1. Soft gate: workflow `lint.yml` chay `pylint`, cho phep fail de lay baseline.
-2. Hard gate: sau khi fix baseline, bo `continue-on-error` va bat PR phai qua lint.
+1. Soft gate: `lint.yml` runs `pylint` and allows failure while the baseline is
+   being measured.
+2. Hard gate: after the lint baseline is fixed, remove `continue-on-error` and
+   require lint to pass for pull requests.
 
-Workflow commit standards kiem tra subject cac commit tren PR/push theo Conventional Commits. Neu can kiem tra GPG key tren remote, uu tien dung GitHub branch protection va Verified signature policy thay vi tu verify trong runner khong co public keyring.
+The commit-standards workflow validates commit subjects on PRs and pushes using
+the Conventional Commits format. If remote GPG-key enforcement is needed, prefer
+GitHub branch protection and verified-signature policies instead of trying to
+verify signatures inside a runner without a project keyring.
 
-Sau khi co baseline tot, co the chuyen sang hard gate.
+After the lint baseline is healthy, promote lint from soft gate to hard gate.

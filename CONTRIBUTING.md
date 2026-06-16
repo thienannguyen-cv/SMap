@@ -72,6 +72,21 @@ Local PR Simulation reproduces the GitHub PR experience on disk, so an agent can
 
 A staged Local PR carries the exact same evidence a GitHub PR does, so an Admin can review it identically and then merge it via native GitHub mechanics.
 
+## HDVO Licensing & Contribution Scope
+
+SMap employs a split-licensing architecture:
+* **SMap Core** is open-source under the Apache License 2.0.
+* **HDVO Tooling** (`tools/testing/hdvo/` and `harness/audit/hdvo/`) is proprietary, governed by the HDVO End-User License Agreement (EULA).
+
+### Contribution-Based EULA Summary
+By utilizing the HDVO tools (e.g., executing scripts in `tools/testing/hdvo/exec/`), you agree to the **HDVO EULA**:
+1. **Free Permission:** You are granted a free license to run, modify, and utilize HDVO tools for **Personal/Educational Evaluation** on SMap Core, and **exclusively** for developing, testing, and submitting Pull Requests back to the official SMap repository (`thienannguyen-cv/SMap`).
+2. **Derivative Works:** Any improvements made to the HDVO tooling itself must be licensed back under these terms or distributed solely via PRs to the official repository.
+3. **Prohibited Activities:** You may not use HDVO for independent forks, parallel/competing derivative works, proprietary internal projects, or integration into CI/CD pipelines of closed-source or commercial products without a commercial license.
+4. **Legacy Alternative (No Vendor Lock-in):** SMap Core is fully independent of HDVO. If you do not accept the EULA, you can ignore the HDVO directories entirely and contribute using traditional, legacy methodologies.
+
+For the full legal text, see the [HDVO LICENSE](tools/testing/hdvo/LICENSE) file.
+
 ## Getting Started with AI Agents
 
 If you are an AI agent picking up this project cold, load the project's handoff before doing anything else:

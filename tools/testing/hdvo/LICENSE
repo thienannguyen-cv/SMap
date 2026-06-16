@@ -1,9 +1,56 @@
-# THÔNG BÁO VÀ GIẤY PHÉP SỞ HỮU ĐỘC QUYỀN (PROPRIETARY LICENSE & NOTICE)
+# THỎA THUẬN CẤP PHÉP NGƯỜI DÙNG CUỐI CHO HDVO (HDVO END-USER LICENSE AGREEMENT - EULA)
 
-Tất cả tài liệu, mã nguồn, cấu hình, và phiên bản HDVO được phân phối trong thư mục `tools/testing/hdvo/` và các thư mục con đều là tài sản trí tuệ độc quyền (**Proprietary Intellectual Property**) của Nguyễn Lê Thiện Ân.
+Tất cả mã nguồn, tài liệu, cấu hình, dữ liệu kiểm chứng và các tệp tin liên quan đến HDVO (Human-in-the-Loop Hypothesis-Driven Validation and Optimization) được phân phối trong thư mục `tools/testing/hdvo/`, `harness/audit/hdvo/` và các thư mục con (gọi chung là "Tài liệu HDVO") đều là tài sản sở hữu trí tuệ độc quyền và bí mật thương mại của Nguyễn Lê Thiện Ân.
 
-Việc sử dụng, sao chép, sửa đổi, và phân phối các tệp này đều bị **nghiêm cấm**, trừ khi có sự cho phép bằng văn bản rõ ràng từ Nguyễn Lê Thiện Ân.
+Bằng việc sử dụng, sao chép hoặc chạy các Tài liệu HDVO này, bạn đồng ý tuân thủ các điều khoản của Thỏa thuận cấp phép này. Nếu không đồng ý, bạn không được phép sử dụng bất kỳ Tài liệu HDVO nào.
 
-Các tệp này chứa Logic Nghiệp vụ Cốt lõi và Giả thiết Ngữ nghĩa, được coi là **Bí mật Thương mại** (Trade Secrets).
+## 1. Cấp phép có giới hạn theo phạm vi đóng góp (Contribution-Based License Grant)
+Tác giả cấp cho bạn một giấy phép không độc quyền, không được chuyển nhượng, không được cấp phép lại, phạm vi toàn cầu, miễn phí bản quyền để sử dụng, chạy và sửa đổi các Tài liệu HDVO **chỉ với mục đích duy nhất là**:
+* Học tập, nghiên cứu và đánh giá cá nhân phi thương mại (Personal, Educational & Non-Commercial Evaluation) trên mã nguồn SMap Core.
+* Phát triển, kiểm thử, xác thực ngữ nghĩa và chuẩn bị các đóng góp mã nguồn (Pull Requests) trực tiếp cho kho lưu trữ chính thức của dự án SMap tại địa chỉ: `https://github.com/thienannguyen-cv/SMap`.
 
-© 2025 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). Mọi Quyền được Bảo lưu (All Rights Reserved).
+**Các Bản Phái Sinh của HDVO (Derivative Works):** Mọi sửa đổi, cải tiến hoặc tác phẩm phái sinh dựa trên bản thân Tài liệu HDVO đều phải tuân thủ điều khoản này và chỉ được phép phân phối thông qua việc đóng góp (Pull Request) trở lại kho lưu trữ chính thức.
+
+## 2. Các hành vi bị nghiêm cấm (Prohibitions)
+Nghiêm cấm mọi hành vi sử dụng nằm ngoài phạm vi được cấp phép tại Mục 1, bao gồm nhưng không giới hạn ở các hành vi sau nếu không có sự đồng ý rõ ràng bằng văn bản của Nguyễn Lê Thiện Ân:
+* Sử dụng Tài liệu HDVO để kiểm thử, xác thực hoặc duy trì các dự án rẽ nhánh (forks) độc lập, các dự án phái sinh chạy song song hoặc bất kỳ dự án nào không nhằm đóng góp trực tiếp vào kho chứa chính thức nêu trên.
+* Sử dụng Tài liệu HDVO cho các mô hình toán học, thuật toán, hoặc ứng dụng khác nằm ngoài mã nguồn lõi của SMap (SMap Core).
+* Tích hợp Tài liệu HDVO vào quy trình CI/CD hoặc môi trường phát triển/thử nghiệm của bất kỳ sản phẩm thương mại hoặc dịch vụ đóng nào của cá nhân, doanh nghiệp hoặc bên thứ ba.
+* Bán, phân phối lại độc lập, cho thuê, hoặc thương mại hóa Tài liệu HDVO dưới mọi hình thức.
+
+## 3. Lựa chọn Phát triển Truyền thống (Legacy Development Alternative)
+HDVO là một công cụ tùy chọn nhằm hỗ trợ duy trì tính nhất quán ngữ nghĩa. Mã nguồn lõi của SMap (SMap Core) là hoàn toàn mở dưới giấy phép Apache License 2.0. Bạn có quyền từ chối điều khoản của EULA này bằng cách không sử dụng Tài liệu HDVO, và tiếp tục phát triển, đóng góp cho SMap Core bằng các phương pháp kiểm thử và phát triển truyền thống (legacy).
+
+## 4. Miễn trừ trách nhiệm và Giới hạn trách nhiệm pháp lý (Disclaimer of Warranty & Limitation of Liability)
+Tài liệu HDVO được cung cấp "NHƯ HIỆN TRẠNG" (AS IS), không kèm theo bất kỳ sự đảm bảo nào. Tác giả không chịu trách nhiệm cho bất kỳ thiệt hại trực tiếp hoặc gián tiếp nào phát sinh từ việc sử dụng Tài liệu HDVO này.
+
+---
+
+# HDVO END-USER LICENSE AGREEMENT (EULA) - ENGLISH TRANSLATION
+
+All source code, documentation, configuration, validation data, and related files associated with HDVO (Human-in-the-Loop Hypothesis-Driven Validation and Optimization) distributed under the `tools/testing/hdvo/` and `harness/audit/hdvo/` directories, and their subdirectories (collectively, "HDVO Materials"), are the proprietary intellectual property and trade secrets of Nguyễn Lê Thiện Ân.
+
+By using, copying, modifying, or executing these HDVO Materials, you agree to be bound by the terms of this License Agreement. If you do not agree, you are not authorized to use these materials.
+
+## 1. Contribution-Based Limited License Grant
+The Author hereby grants you a non-exclusive, non-transferable, non-sublicensable, worldwide, royalty-free license to use, execute, and modify the HDVO Materials **solely for the purpose of**:
+* Personal, Educational, and Non-Commercial Evaluation of the SMap Core codebase.
+* Developing, testing, semantically validating, and preparing code contributions (Pull Requests) directly to the official SMap repository at: `https://github.com/thienannguyen-cv/SMap`.
+
+**Derivative Works of HDVO:** Any modifications, improvements, or derivative works based on the HDVO Materials themselves are subject to this EULA and may only be distributed via Pull Requests back to the official repository.
+
+## 2. Prohibited Uses
+Any use of the HDVO Materials outside the scope of Section 1 is strictly prohibited without the prior written consent of Nguyễn Lê Thiện Ân, including but not limited to:
+* Using HDVO Materials to test, validate, or maintain independent forks, parallel derivative works, or any projects not intended for direct contribution to the official repository.
+* Using HDVO Materials for mathematical models, algorithms, or applications outside of SMap Core.
+* Integrating HDVO Materials into CI/CD pipelines or development/testing environments of any proprietary or commercial product or service.
+* Selling, redistributing independently, leasing, or commercializing HDVO Materials in any form.
+
+## 3. Legacy Development Alternative
+HDVO is an optional tool designed to maintain semantic consistency. SMap Core remains fully open source under the Apache License 2.0. You may decline this EULA by not using the HDVO Materials, and continue to develop or contribute to SMap Core using traditional, legacy development and testing methods.
+
+## 4. Disclaimer of Warranty & Limitation of Liability
+The HDVO Materials are provided "AS IS", without warranty of any kind. In no event shall the Author be liable for any direct or indirect damages arising out of the use of these materials.
+
+---
+© 2025-2026 Nguyễn Lê Thiện Ân (Thien An L. Nguyen). Mọi quyền được bảo lưu (All Rights Reserved).

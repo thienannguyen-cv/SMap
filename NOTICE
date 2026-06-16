@@ -7,3 +7,21 @@ Thien An L. Nguyen. Copyright 2026 Thien An L. Nguyen.
 The logos may be used to refer to the SMap project in a truthful and
 non-misleading way. It should not be used to imply third-party endorsement,
 affiliation, or product identity without permission.
+
+--------------------------------------------------------------------------------
+SPLIT-LICENSING / DUAL LICENSE NOTICE
+
+This repository operates under a split-licensing model:
+
+1. SMAP CORE: All files in this repository (excluding the designated HDVO folders 
+   below) are licensed under the Apache License, Version 2.0 (the "License") 
+   contained herein.
+2. HDVO TOOLING: All files within the "tools/testing/hdvo/" and "harness/audit/hdvo/"
+   directories are proprietary intellectual property and are licensed under the
+   specific HDVO End-User License Agreement (EULA). You can find the terms of the
+   EULA in: tools/testing/hdvo/LICENSE
+
+By using, contributing to, or distributing this repository, you agree to comply
+with these licensing boundaries. SMap Core remains fully functional without HDVO,
+allowing developers who do not agree to the HDVO EULA to bypass HDVO entirely
+and use legacy testing/development methods.

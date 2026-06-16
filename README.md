@@ -284,7 +284,12 @@ See [NOTICE](NOTICE) for attribution details.
 
 ## License
 
-This project is licensed under the **Apache 2.0 License**. See the [LICENSE](LICENSE) file for more details.
+This repository is split-licensed:
+
+* **SMap Core**: Licensed under the open-source **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for details.
+* **HDVO Tooling** (`tools/testing/hdvo/` and `harness/audit/hdvo/`): Licensed under a proprietary **HDVO End-User License Agreement (EULA)**, which grants a free license **solely** for testing, validating, and debugging code contributions directly to this official repository. See the [HDVO LICENSE](tools/testing/hdvo/LICENSE) file for details.
+
+SMap Core remains fully functional without HDVO. Developers who do not accept the terms of the HDVO EULA can bypass HDVO completely and contribute to SMap Core using traditional, legacy development and testing methods.
 
 <hr>
 

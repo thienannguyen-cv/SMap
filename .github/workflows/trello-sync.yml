@@ -1,0 +1,49 @@
+name: Sync bugs to Trello
+
+# One-way sync: active_bugs.md -> Trello. Runs when the bug catalogue changes
+# on main, or on demand. Trello credentials live in repository secrets.
+on:
+  push:
+    branches: [main]
+    paths:
+      - active_bugs.md
+      - tools/trello_sync/sync_bugs.py
+      - .github/workflows/trello-sync.yml
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (parse and print, no writes)"
+        type: boolean
+        default: false
+      archive_removed:
+        description: "Archive cards for bugs removed from active_bugs.md"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trello-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Sync active_bugs.md to Trello
+        env:
+          TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_ID }}
+          TRELLO_BOARD: ${{ secrets.TRELLO_BOARD }}
+          TRELLO_LIST_NAME: ${{ vars.TRELLO_LIST_NAME }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ "${{ inputs.archive_removed }}" = "true" ]; then ARGS="$ARGS --archive-removed"; fi
+          python tools/trello_sync/sync_bugs.py $ARGS

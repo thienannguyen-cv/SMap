@@ -13,7 +13,7 @@ here so contributors can audit and improve it.
 | `#dev-activity` | push, PRs, issues, comments (firehose) | **Native** Discord↔GitHub webhook | GitHub repo settings |
 | `#releases`     | published release + PyPI link | Action `discord-release.yml` (`release: published`) | repo |
 | `#ci-status`    | Unit Tests / Lint / Commit Standards results | Action `discord-ci.yml` (`workflow_run: completed`) | repo |
-| `#bugs`         | `active_bugs.md` changes → Trello cards | Action `trello-sync.yml` (+ optional Discord ping) | repo |
+| `#bugs`         | `active_bugs.md` changes → Trello cards + Discord ping | Action `trello-sync.yml` (`push` to `active_bugs.md`) | repo |
 | _(non-GitHub)_  | X/RSS/Trello card moves, etc. | **Zapier** (kept) | Zapier |
 
 **One owner per event** — never let two mechanisms post the same thing. Native
@@ -26,6 +26,7 @@ cannot emit.
 | ---- | ---- | ------- | ----- |
 | `DISCORD_WEBHOOK_URL`    | secret | `discord-release.yml` | Webhook of `#releases` |
 | `DISCORD_CI_WEBHOOK_URL` | secret | `discord-ci.yml` | Webhook of `#ci-status` (set equal to the above to use one channel) |
+| `DISCORD_BUGS_WEBHOOK_URL` | secret | `trello-sync.yml` | Webhook of `#bugs`; optional — the ping step no-ops if unset |
 | `TRELLO_KEY` / `TRELLO_TOKEN` / `TRELLO_LIST_ID` | secret | `trello-sync.yml` | See `tools/trello_sync/README.md` |
 
 A Discord webhook URL is a **bearer credential** — anyone holding it can post.
@@ -63,6 +64,12 @@ the URL is never exposed to outside contributors.
 - **CI:** posts every **failure**, but only **successes on `main`** (noise gate —
   adjust the `if` in `discord-ci.yml`). Uses `workflow_run`, so it also reports CI
   for **fork PRs** while still having access to the webhook secret.
+- **Bugs:** after syncing to Trello, `trello-sync.yml` pings `#bugs` **only when
+  `active_bugs.md` itself changed** in the push (a `git diff` of the push range
+  filters out runs where only `sync_bugs.py` or the workflow changed). Manual
+  `workflow_dispatch` re-syncs never ping. Set `DISCORD_BUGS_WEBHOOK_URL` to a
+  separate `#bugs` webhook; leave it unset to disable the ping (Trello sync still
+  runs). The "Open bug rows" count is an approximate tally of catalogue rows.
 - The workflows use `curl` + `jq` only (no marketplace action). `jq -n --arg`
   is injection-safe against arbitrary release/commit text.
 

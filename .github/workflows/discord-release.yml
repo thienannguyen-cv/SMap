@@ -1,0 +1,61 @@
+name: Discord · Release
+
+# Curated release announcement -> Discord (#releases).
+# Fires when a GitHub Release is published; cd.yml publishes smap-torch to PyPI
+# on the same event. Posts via a plain webhook (curl + jq) — no third-party
+# action, so there is no supply-chain surface and nothing to pin/update.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post release to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TAG: ${{ github.event.release.tag_name }}
+          NAME: ${{ github.event.release.name }}
+          URL: ${{ github.event.release.html_url }}
+          BODY: ${{ github.event.release.body }}
+          AUTHOR: ${{ github.event.release.author.login }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_WEBHOOK_URL not set — skipping."; exit 0
+          fi
+          PKG="https://pypi.org/project/smap-torch/"
+          if [ "${PRERELEASE}" = "true" ]; then COLOR=15844367; KIND="🧪 Pre-release"; else COLOR=3066993; KIND="🚀 Release"; fi
+          # jq builds the JSON: --arg is injection-safe, and string slicing in jq
+          # is by Unicode codepoint so trimming never breaks multibyte UTF-8.
+          payload=$(jq -n \
+            --arg title "${KIND}: ${NAME:-$TAG}" \
+            --arg url "$URL" \
+            --arg body "$BODY" \
+            --arg tag "$TAG" \
+            --arg pkg "$PKG" \
+            --arg author "$AUTHOR" \
+            --arg repo "$REPO" \
+            --argjson color "$COLOR" \
+            '{
+              username: "SMap Releases",
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: $color,
+                description: ($body | if length > 3500 then .[0:3500] + "\n…" else . end),
+                fields: [
+                  { name: "Tag", value: (if $tag == "" then "—" else $tag end), inline: true },
+                  { name: "PyPI", value: ("[smap-torch](" + $pkg + ")"), inline: true }
+                ],
+                footer: { text: ($repo + (if $author == "" then "" else " · by " + $author end)) }
+              }]
+            }')
+          curl -fsS -X POST -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"

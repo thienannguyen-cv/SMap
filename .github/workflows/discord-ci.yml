@@ -1,0 +1,75 @@
+name: Discord · CI status
+
+# CI result -> Discord (#ci-status). Triggered by workflow_run so it runs in the
+# DEFAULT-BRANCH context and therefore HAS access to secrets even when the CI run
+# came from a fork PR (where pull_request-triggered jobs cannot read secrets).
+# It only reads event metadata and never checks out untrusted code.
+#
+# NOTE: workflow_run only fires for the copy of this file on the default branch,
+# so it starts working once merged to main.
+
+on:
+  workflow_run:
+    workflows: ["Unit Tests", "Lint", "Commit Standards"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post CI result to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_CI_WEBHOOK_URL }}
+          WF: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          URL: ${{ github.event.workflow_run.html_url }}
+          ACTOR: ${{ github.event.workflow_run.actor.login }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          COMMIT_MSG: ${{ github.event.workflow_run.head_commit.message }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_CI_WEBHOOK_URL not set — skipping."; exit 0
+          fi
+          # Noise control: announce every failure, but only successes on main.
+          # (Adjust this gate to taste.)
+          if [ "$CONCLUSION" != "failure" ] && [ "$BRANCH" != "main" ]; then
+            echo "Skip: $CONCLUSION on '$BRANCH' (only failures, or anything on main, are posted)."
+            exit 0
+          fi
+          case "$CONCLUSION" in
+            success)   COLOR=3066993;  ICON="✅";;
+            failure)   COLOR=15158332; ICON="❌";;
+            cancelled) COLOR=9807270;  ICON="🚫";;
+            *)         COLOR=15844367; ICON="⚠️";;
+          esac
+          payload=$(jq -n \
+            --arg title "$ICON $WF — $CONCLUSION" \
+            --arg url "$URL" \
+            --arg branch "$BRANCH" \
+            --arg actor "$ACTOR" \
+            --arg event "$EVENT" \
+            --arg msg "$COMMIT_MSG" \
+            --arg repo "$REPO" \
+            --argjson color "$COLOR" \
+            '{
+              username: "SMap CI",
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: $color,
+                fields: [
+                  { name: "Branch", value: (if $branch == "" then "—" else $branch end), inline: true },
+                  { name: "Trigger", value: (if $event == "" then "—" else $event end), inline: true },
+                  { name: "By", value: (if $actor == "" then "—" else $actor end), inline: true },
+                  { name: "Commit", value: (($msg | split("\n")[0] | .[0:200]) | if . == "" then "—" else . end) }
+                ],
+                footer: { text: $repo }
+              }]
+            }')
+          curl -fsS -X POST -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"

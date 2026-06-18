@@ -205,26 +205,11 @@ SMap is designed to be **AI-Native**. We use a rigorous "Source-Completion via A
 
 **What the proof establishes, in one line:** training drives **Φ** — the count of pixels where the rendered silhouette disagrees with the target — down to zero, and Φ = 0 holds exactly when every target pixel is covered *and* every rendered pixel is on target (the precise definition of a correct projection). Full statement and proof: [`harness/specs/math_model.md`](harness/specs/math_model.md).
 
-### The Triangulation Architecture
+### Verification Harness Architecture
 
-To ensure the unwavering correctness of the **CAM Schema** and its underlying logic, the verification harness employs a "Triangulation Architecture". This architecture cross-validates the mathematical theory, the headless logical convergence, and the interactive visual output:
+SMap uses a tri-anchored verification harness: the PyTorch source, the math model/proof, and executable simulator/probe instruments are kept in sync so bugs can be isolated as source, proof/model, or simulator/UI deviations.
 
-```mermaid
-graph TD
-    classDef core fill:#1D3E63,stroke:#FBBF24,stroke-width:2px,color:#fff;
-    classDef test fill:#2A5078,stroke:#9FBEDC,stroke-width:2px,color:#fff;
-    classDef ui fill:#38618D,stroke:#fff,stroke-width:2px,color:#fff;
-    
-    A["PyTorch Source & Math Model (smap/)"]:::core
-    B["Headless Simulator (_repro_check.mjs)"]:::test
-    C["JSX Browser Simulator (smap_simulator.jsx)"]:::ui
-
-    A <-->|"Theorem Verification (Lemma 1-CAM)"| B
-    B <-->|"Convergence & State Cross-check"| C
-    C <-->|"Visual Auditing & Snapshot Feedback"| A
-```
-
-This multi-environment cross-validation ensures that any bug introduced in the UI or any logic flaw in the mathematical models is immediately caught and isolated.
+See [`harness/README.md`](harness/README.md) for the harness map, Mermaid architecture diagram, common workflows, and guardrails.
 
 ### Running the JSX Simulator (no AI agent required)
 The simulator is the visual audit instrument, and the bug-report flow asks for a `snapshot_*.json` produced from it. Its source is [`harness/simulator/smap_simulator.jsx`](harness/simulator/smap_simulator.jsx); you launch it through the small dev server in `harness/preview/`:

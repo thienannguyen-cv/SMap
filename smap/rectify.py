@@ -415,6 +415,7 @@ class FUTRectify(DefaultRectify):
         # self.smap3x3.vtestcase.testbot_input(y_flow.reshape(BATCH_SIZE,C_zoom,3*3,h_zoom, w_zoom), filename="_y_flow.npy", dim=4)
 
         target_2Dr = target_2Dr.reshape(BATCH_SIZE,1,h_zoom, w_zoom)
+        y_flow = y_flow*(1.-((pre_mask>specials.OFF_THRESH).long()==target_2Dr.long()).float())
 
         weight_grdf = (weight)-weight.detach()
         pre_mask_grdf = (pre_mask)-pre_mask.detach()

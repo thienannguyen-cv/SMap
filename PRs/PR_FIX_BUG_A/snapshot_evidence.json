@@ -1,0 +1,33 @@
+{
+  "pr_id": "PR_FIX_BUG_A",
+  "title": "Fix Bug A: FUT missing convergence filter",
+  "description": "Ported the y_flow * (1 - match) convergence filter from DEP mode to FUT mode (rectify.py L418). Proved mathematically via Lemma 1 that this forces the target matched cell to become a strict mask fixed point (g_m = 0).",
+  "validation_protocol": "strict-3-stage (fail-before, pass-after, revert-fail)",
+  "reproducibility": {
+    "commit_hash": "49ef2e49605a8c6c24e61d3f79bd3d73bec57121",
+    "seed": 1024,
+    "probe": "harness/audit/kit/probes/t_bug_a_minimal.py",
+    "commands_run": [
+      "python harness/audit/setup_sandbox.py",
+      "python harness/audit/sandbox/t_bug_a_minimal.py"
+    ]
+  },
+  "outputs": {
+    "fail_before": {
+      "DEP_g_m": "+0.00000000e+00",
+      "FUT_g_m": "+3.00000000e-01",
+      "diff_mask": "3.00000000e-01",
+      "diff_spatial": "0.00000000e+00"
+    },
+    "pass_after": {
+      "DEP_g_m": "+0.00000000e+00",
+      "FUT_g_m": "+0.00000000e+00",
+      "diff_mask": "0.00000000e+00",
+      "diff_spatial": "0.00000000e+00"
+    }
+  },
+  "tolerances": {
+    "unchanged_flow": "< 1e-9"
+  },
+  "semantic_equivalence_check": "Passed. Both modes use identically shaped target_2Dr and pre_mask, identical broadcasting rules, and y_flow operates analogously in both execution paths before weight_grdf."
+}

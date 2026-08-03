@@ -4,21 +4,21 @@ The SMap harness is the project's verification layer. It keeps the PyTorch sourc
 
 ## Core idea: tri-anchored verification
 
-SMap uses a tri-anchored workflow: each important mechanism should be understandable from the source, stated in the math model, and observable in an executable instrument.
+SMap uses a tri-anchored workflow: each important mechanism should be understandable from the source, stated in the math model, and observable in an executable instrument. The diagram deliberately keeps **source** and **math model** as separate vertices: source is the implementation truth to inspect, while the math model is the current correctness claim kept as close to that source as possible.
 
 ```mermaid
 graph TD
-    classDef core fill:#1D3E63,stroke:#FBBF24,stroke-width:2px,color:#fff;
-    classDef proof fill:#2A5078,stroke:#9FBEDC,stroke-width:2px,color:#fff;
-    classDef ui fill:#38618D,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef source fill:#1D3E63,stroke:#FBBF24,stroke-width:2px,color:#fff;
+    classDef model fill:#2A5078,stroke:#9FBEDC,stroke-width:2px,color:#fff;
+    classDef instrument fill:#38618D,stroke:#fff,stroke-width:2px,color:#fff;
 
-    A["PyTorch Source (smap/)"]:::core
-    B["Math Model + Proof (harness/specs/math_model.md)"]:::proof
-    C["Executable Instruments (JSX simulator, headless checks, probes)"]:::ui
+    A["SST: PyTorch Source<br/>(smap/ + tools/)"]:::source
+    B["Math Model + Proof<br/>(harness/specs/math_model.md)"]:::model
+    C["Executable Instruments<br/>(JSX simulator, headless checks, probes)"]:::instrument
 
-    A <-->|"source anchors + observed behavior"| B
-    B <-->|"semantic claims + expected invariants"| C
-    C <-->|"visual/headless/probe feedback"| A
+    A <-->|"source anchors; deviations become bugs"| B
+    B <-->|"semantic claims; expected invariants"| C
+    C <-->|"observable behavior; source-level falsification"| A
 ```
 
 At mechanism level, the stricter form of this contract is:

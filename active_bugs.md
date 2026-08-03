@@ -8,7 +8,7 @@
 ## Bug Catalogue (source-confirmed; math_model §4) — each maps to an app toggle + fix
 | Bug | Severity | Source anchor | Effect (corrected) | Fix direction |
 |---|---|---|---|---|
-| **A — FUT missing convergence filter** | CORRECTNESS, **latent** (training uses DEP) | DEP `y_flow*=(1−case)` `rectify.py:294`; FUT lacks it (absent L405-425) | At S1 with y_flow==1, alignment fires ⇒ `g_m≠0` ⇒ S1 loses strict mask fixed point. **Sign is +α₁ (reinforcing) ⇒ Φ does NOT rise** — confirmed `t_a2.py` (DEP self-force 0, FUT +0.3). | add `y_flow*=(1.−((pre_mask>OFF)==target))` after FUT L418 |
+| **A — FUT missing convergence filter** | **VERIFIED FIX (pending merge)**. | DEP `y_flow*=(1−case)` `rectify.py:294`; FUT lacked it. | At S1 with y_flow==1, alignment fires ⇒ `g_m≠0` ⇒ S1 loses strict mask fixed point. Verified fix makes FUT absorbing (`g_m=0`) via `t_bug_a_minimal.py`. | Fixed: Added `y_flow*=(1.−((pre_mask>OFF)==target))` after FUT L418 |
 | **B — k_const ramp discarded** | precision-only at proof (reopen caveat) | `smap.py` k_const=1.0 (L11); ipynb L435 pins `=1.` discarding L432 ramp | higher k = more participation; source pins MAX 1.0 ⇒ no in-place-warming starvation (occlusion converges at k=1.0). **BUT far/k_const stall: coverage-by-routing fails at k=1.0** (forward-observable; schedule the sole lever). m-fixed regime re-derivation pending. | ipynb L435 → `=k_const` AND reconcile L62/L63 |
 | **C — app B not source-faithful** | AUDITABILITY (app-side done) | `rectify.py` DEP B is dim=1 cross-channel (L203) vs uniform 3×3 | toggle "B = source-faithful" applies DEP→cross-channel→self at finest | app-side complete |
 

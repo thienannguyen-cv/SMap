@@ -190,13 +190,6 @@ output = smap_model(input_tensor)
 print("Output shape:", output.shape)
 ```
 
-## Roadmap
-
-The next release will focus on:
-* **Depth Estimation:** Implementing depth estimation for single-shape objects.
-
-For more detailed plans, you can check our [Trello Board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management).
-
 ## AI Agent Integration & The Verification Harness
 
 SMap is designed to be **AI-Native**. We use a rigorous "Source-Completion via App-Based Auditing" paradigm, meaning every mathematical proof and code block is verifiable by both humans and AI agents.
@@ -244,6 +237,13 @@ Beyond bug reports, we use several Pull Request types — **Code Fix**, **Math M
 > **Note on the source code:** SMap alternates between an **Initialization Phase** (the source is frozen while we build the math model around it) and a **Development Phase** (the source is fixed to match the model). You never need to track this by hand — when an AI agent loads the project context it is told the current phase automatically and guides you accordingly. To just report a bug, the phase does not matter.
 
 Please see our comprehensive [CONTRIBUTING.md](CONTRIBUTING.md) for the full PR types, the contributor roles (General Contributor, Domain Expert, Admin), and how to submit.
+
+## Roadmap
+
+The next release will focus on:
+* **Depth Estimation:** Implementing depth estimation for single-shape objects.
+
+For more detailed plans, you can check our [Trello Board](https://trello.com/invite/b/66d545d4e065eebded9a9c8f/ATTI56f6dabcfab65e388e9fa66b42e77f6bE3EB9A69/smap-project-management).
 
 ## Citation
 
